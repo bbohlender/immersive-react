@@ -1,0 +1,137 @@
+---
+title: Hit Detection
+description: 
+nav: 18
+---
+
+
+<Sandpack
+  template="react-ts"
+  customSetup={{
+    dependencies: {
+      'three': 'latest',
+      '@react-three/fiber': 'latest',
+      '@react-three/drei': 'latest',
+      '@react-three/xr': 'latest',
+      'zustand': 'latest'
+    },
+  }}
+  files={{
+    '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
+import { useState, useRef } from "react";
+import { useGLTF, Gltf } from "@react-three/drei";
+import { createXRStore, XR, enterVR } from "@react-three/xr";
+import { useBulletStore, BulletData } from "./store"
+import { useXRControllerButtonEvent, useXRInputSourceStateContext } from "@react-three/xr";
+
+const store = createXRStore({ controller: { right: Gun } });
+
+export default function App() {
+  return (
+    <>
+      <button onClick={() => store.enterVR()}>Enter VR</button>
+      <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
+        <XR>
+            <Bullets />
+            <Gltf src="spacestation.glb" />
+        </XR>
+      </Canvas>
+    </>
+  );
+}
+
+function Bullets() {
+  const bullets = useBulletStore((state) => state.bullets);
+  return (
+    <>
+      {bullets.map((bulletData) => (
+        <Bullet bulletData={bulletData} key={bulletData.id} />
+      ))}
+    </>
+  );
+};
+
+const bulletSpeed = 10;
+const forwardVector = new Vector3(0, 0, -1);
+
+function Bullet({ bulletData }: { bulletData: BulletData }) {
+
+    const { scene } = useGLTF("assets/blaster.glb");
+    const bulletPrototype = scene.getObjectByName("bullet")! as Mesh;
+
+    const ref = useRef<Mesh>(null);
+
+    useFrame(() => {
+        const now = performance.now();
+        const bulletObject = ref.current!;
+        const directionVector = forwardVector
+        .clone()
+        .applyQuaternion(bulletObject.quaternion);
+        bulletObject.position.addVectors(
+        bulletData.initPosition,
+        directionVector.multiplyScalar(
+            (bulletSpeed * (now - bulletData.timestamp)) / 1000
+        )
+        );
+    });
+
+    return (
+        <mesh
+            ref={ref}
+            geometry={bulletPrototype.geometry}
+            material={bulletPrototype.material}
+            quaternion={bulletData.initQuaternion}
+        ></mesh>
+    );
+};
+
+function Gun() {
+  const state = useXRInputSourceStateContext("controller");
+  const { scene } = useGLTF("blaster.glb");
+  const bulletPrototype = scene.getObjectByName("bullet")!;
+
+  useXRControllerButtonEvent(state, "xr-standard-trigger", (state) => {
+    if (state === "pressed") {
+      useBulletStore
+        .getState()
+        .addBullet(
+          bulletPrototype.getWorldPosition(new Vector3()),
+          bulletPrototype.getWorldQuaternion(new Quaternion())
+        );
+    }
+  });
+
+  return <primitive object={scene} />;
+};
+useGLTF.preload("blaster.glb");
+
+`, 'store.ts': `import { create } from "zustand";
+import { generateUUID } from "three/src/math/MathUtils.js";
+
+type BulletStore = {
+  bullets: BulletData[];
+  addBullet: (position: Vector3, quaternion: Quaternion) => void;
+  removeBullet: (bulletId: string) => void;
+};
+
+export const useBulletStore = create<BulletStore>((set) => ({
+  bullets: [],
+  addBullet: (position, quaternion) =>
+    set((state) => {
+      const newBullet = {
+        id: generateUUID(),
+        initPosition: position,
+        initQuaternion: quaternion,
+        timestamp: performance.now(),
+      };
+      setTimeout(() => {
+        state.removeBullet(newBullet.id);
+      }, bulletTimeToLive * 1000);
+      return { bullets: [...state.bullets, newBullet] };
+    }),
+  removeBullet: (bulletId) =>
+    set((state) => ({
+      bullets: state.bullets.filter((bullet) => bullet.id !== bulletId),
+    })),
+}));
+`}}/>

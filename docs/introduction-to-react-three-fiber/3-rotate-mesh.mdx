@@ -29,7 +29,7 @@ function MyComponent() {
     const [red, setRed] = useState(true)
     return <mesh onClick={() => setRed(!red)} position={[ 0, 0, 0 ]}>
         <boxGeometry/>
-        <meshStandardMaterial color={red ? "red" : "blue"} />
+        <meshBasicMaterial color={red ? "red" : "blue"} />
     </mesh>
 }
 

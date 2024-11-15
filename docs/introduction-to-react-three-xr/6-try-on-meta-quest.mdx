@@ -49,7 +49,7 @@ function MyComponent() {
     useFrame(() => ref.current?.rotateY(0.01)) 
     return <mesh ref={ref} onClick={() => setRed(!red)} position={[ 0, 0, 0 ]}>
         <boxGeometry/>
-        <meshStandardMaterial color={red ? "red" : "blue"} />
+        <meshBasicMaterial color={red ? "red" : "blue"} />
     </mesh>
 }
 
