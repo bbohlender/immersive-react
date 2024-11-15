@@ -9,14 +9,58 @@ jobs:
   docs:
     uses: pmndrs/docs/.github/workflows/build.yml@v2
     with:
-      mdx: 'docs'
-      base_path: ''
-      libname: 'React Three XR Workshop'
-      icon: '🥽'
-      home_redirect: '/introduction-to-react-three-fiber/0-getting-started'
+      mdx: "docs"
+      base_path: ""
+      libname: "Immersive React"
+      icon: "🥽"
+      home_redirect: "/introduction-to-react-three-fiber/0-getting-started"
+      libname_dotsuffix_label: ""
+
+  assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: assets
+          path: public/
+
+  bundle-artifacts:
+    runs-on: ubuntu-latest
+    needs:
+      - assets
+    steps:
+      - name: Download Examples Artifiact
+        uses: actions/download-artifact@v4
+        with:
+          name: assets
+          path: ./out
+
+      - name: Download Docs Artifiact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: ./
+
+      - name: Extract Docs
+        run: tar -xf ./artifact.tar -C ./out/
+
+      - name: Create deploy.tar
+        run: tar -cf deploy.tar ./out/*
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy
+          path: ./deploy.tar
 
   deploy:
-    needs: docs
+    needs:
+      - docs
+      - bundle-artifacts
     runs-on: ubuntu-latest
     permissions:
       pages: write # to deploy to Pages
@@ -31,5 +75,4 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v4
         with:
-          artifact_name: github-pages
-          
+          artifact_name: deploy

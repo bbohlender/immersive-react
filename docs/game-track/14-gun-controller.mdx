@@ -13,7 +13,7 @@ nav: 14
   template="react-ts"
   customSetup={{
     dependencies: {
-      'three': 'latest',
+      'three': '168',
       '@react-three/fiber': 'latest',
       '@react-three/drei': 'latest',
       '@react-three/xr': 'latest',
@@ -25,11 +25,11 @@ import { useState, useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import { createXRStore, XR, enterVR } from "@react-three/xr";
 
-const store = createXRStore({ emulate: true });
+const store = createXRStore({ emulate: { inject: true } });
 
 export default function App() {
   return (<>
-    <button onClick={() => store.enterVR()}>
+    <button style="position: absolute; z-index: 1" onClick={() => store.enterVR()}>
         Enter VR
     </button>
     <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>

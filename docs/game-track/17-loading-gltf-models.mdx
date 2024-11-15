@@ -9,7 +9,7 @@ nav: 17
   template="react-ts"
   customSetup={{
     dependencies: {
-      'three': 'latest',
+      'three': '168',
       '@react-three/fiber': 'latest',
       '@react-three/drei': 'latest',
       '@react-three/xr': 'latest',
@@ -25,12 +25,12 @@ import { useBulletStore, BulletData } from "./store"
 import { useXRControllerButtonEvent, useXRInputSourceStateContext } from "@react-three/xr";
 import { Vector3, Quaternion } from "three";
 
-const store = createXRStore({ controller: { right: Gun } });
+const store = createXRStore({ controller: { right: Gun }, emulate: { inject: true } });
 
 export default function App() {
   return (
     <>
-      <button onClick={() => store.enterVR()}>Enter VR</button>
+      <button style="position: absolute; z-index: 1" onClick={() => store.enterVR()}>Enter VR</button>
       <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
         <XR store={store}>
             <Bullets />
