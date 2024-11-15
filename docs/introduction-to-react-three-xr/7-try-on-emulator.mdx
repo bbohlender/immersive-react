@@ -25,7 +25,7 @@ const store = createXRStore({ emulate: { inject: true } });
 
 export default function App() {
   return (<>
-    <button style="position: absolute; z-index: 1" onClick={() => store.enterVR()}>
+    <button style={{ position: "absolute"; zIndex: "1" }} onClick={() => store.enterVR()}>
         Enter VR
     </button>
     <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>

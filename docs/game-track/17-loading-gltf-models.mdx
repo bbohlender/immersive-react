@@ -30,7 +30,7 @@ const store = createXRStore({ controller: { right: Gun }, emulate: { inject: tru
 export default function App() {
   return (
     <>
-      <button style="position: absolute; z-index: 1" onClick={() => store.enterVR()}>Enter VR</button>
+      <button style={{ position: "absolute"; zIndex: "1" }} onClick={() => store.enterVR()}>Enter VR</button>
       <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
         <XR store={store}>
             <Environment preset="warehouse" />
@@ -53,7 +53,7 @@ function Bullets() {
 };
 
 const bulletSpeed = 10;
-const forwardVector = new Vector3(0, 0, -1);
+const forwardVector = new Vector3();
 
 function Bullet({ bulletData }: { bulletData: BulletData }) {
 
@@ -63,7 +63,7 @@ function Bullet({ bulletData }: { bulletData: BulletData }) {
         const now = performance.now();
         const bulletObject = ref.current!;
         const directionVector = forwardVector
-        .clone()
+        .set(0, 0, -1)
         .applyQuaternion(bulletObject.quaternion);
         bulletObject.position.addVectors(
         bulletData.initPosition,
