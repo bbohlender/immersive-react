@@ -50,13 +50,14 @@ jobs:
         run: tar -xf ./artifact.tar -C ./out/
 
       - name: Create deploy.tar
-        run: tar -cf deploy.tar ./out/*
+        working-directory: ./out
+        run: tar -cf deploy.tar ./*
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: deploy
-          path: ./deploy.tar
+          path: ./out/deploy.tar
 
   deploy:
     needs:
