@@ -32,6 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - assets
+      - docs
     steps:
       - name: Download Examples Artifiact
         uses: actions/download-artifact@v4
@@ -59,7 +60,6 @@ jobs:
 
   deploy:
     needs:
-      - docs
       - bundle-artifacts
     runs-on: ubuntu-latest
     permissions:
