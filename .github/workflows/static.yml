@@ -9,7 +9,7 @@ jobs:
   docs:
     uses: pmndrs/docs/.github/workflows/build.yml@v2
     with:
-      mdx: '/'
+      mdx: 'content'
       base_path: ''
       libname: 'React Three XR Workshop'
       icon: '🥽'
