@@ -1,0 +1,47 @@
+---
+title: Add XR
+description: 
+nav: 5
+---
+
+<Sandpack
+  template="react-ts"
+  customSetup={{
+    dependencies: {
+      'three': 'latest',
+      '@react-three/fiber': 'latest',
+      '@react-three/drei': 'latest',
+      '@react-three/xr': 'latest',
+    },
+  }}
+  files={{
+    '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
+import { useState, useRef } from "react";
+import { useGLTF } from "@react-three/drei";
+import { createXRStore, XR, enterVR } from "@react-three/xr";
+
+export default function App() {
+  return (
+    <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
+      <MyComponent />
+      <MyModel />
+    </Canvas>
+  )
+}
+
+function MyModel() {
+    const { scene } = useGLTF("shoe.glb")
+    return <primitive object={scene} />
+}
+
+function MyComponent() {
+    const [red, setRed] = useState(true)
+    const ref = useRef<Mesh>(null)
+    useFrame(() => ref.current?.rotateY(0.01)) 
+    return <mesh ref={ref} onClick={() => setRed(!red)} position={[ 0, 0, 0 ]}>
+        <boxGeometry/>
+        <meshStandardMaterial color={red ? "red" : "blue"} />
+    </mesh>
+}
+
+`}}/>

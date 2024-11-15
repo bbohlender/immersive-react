@@ -1,0 +1,24 @@
+---
+title: Create a Mesh
+description:
+nav: 1
+---
+
+<Sandpack
+  template="react-ts"
+  customSetup={{
+    dependencies: {
+      'three': 'latest',
+      '@react-three/fiber': 'latest'
+    },
+  }}
+  files={{
+    '/App.tsx': `import { Canvas } from "@react-three/fiber";
+
+export default function App() {
+  return (
+    <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
+      {/* add your code here */}
+    </Canvas>
+  )
+}`}}/>

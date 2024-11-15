@@ -1,0 +1,45 @@
+---
+title: Splitting up the Shoe
+description:
+nav: 8
+---
+
+- remove MyComponent
+- paste output of gltf.pmnd.rs into MyModel
+
+<Sandpack
+  template="react-ts"
+  customSetup={{
+    dependencies: {
+      'three': 'latest',
+      '@react-three/fiber': 'latest',
+      '@react-three/drei': 'latest',
+      '@react-three/xr': 'latest',
+    },
+  }}
+  files={{
+    '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
+import { useState, useRef } from "react";
+import { useGLTF } from "@react-three/drei";
+import { createXRStore, XR, enterVR } from "@react-three/xr";
+
+const store = createXRStore({ emulate: true });
+
+export default function App() {
+  return (
+    <>
+      <button onClick={() => store.enterVR()}>Enter VR</button>
+      <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
+        <XR>
+          <MyModel />
+        </XR>
+      </Canvas>
+    </>
+  );
+}
+
+function MyModel() {
+return null
+}
+
+`}}/>

@@ -1,0 +1,36 @@
+---
+title: Rotate the Mesh
+description: 
+nav: 3
+---
+
+
+<Sandpack
+  template="react-ts"
+  customSetup={{
+    dependencies: {
+      'three': 'latest',
+      '@react-three/fiber': 'latest'
+    },
+  }}
+  files={{
+    '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
+import { useState, useRef } from "react";
+
+export default function App() {
+  return (
+    <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
+      <MyComponent />
+    </Canvas>
+  )
+}
+
+function MyComponent() {
+    const [red, setRed] = useState(true)
+    return <mesh onClick={() => setRed(!red)} position={[ 0, 0, 0 ]}>
+        <boxGeometry/>
+        <meshStandardMaterial color={red ? "red" : "blue"} />
+    </mesh>
+}
+
+`}}/>
