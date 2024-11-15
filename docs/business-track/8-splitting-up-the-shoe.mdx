@@ -30,7 +30,7 @@ export default function App() {
     <>
       <button onClick={() => store.enterVR()}>Enter VR</button>
       <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
-        <XR>
+        <XR store={store}>
           <MyModel />
         </XR>
       </Canvas>

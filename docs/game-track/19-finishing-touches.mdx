@@ -25,6 +25,7 @@ import { useBulletStore, BulletData } from "./store"
 import { Target } from "./target"
 import { useScoreStore } from "./score";
 import { useXRControllerButtonEvent, useXRInputSourceStateContext } from "@react-three/xr";
+import { Vector3, Quaternion } from "three";
 
 const store = createXRStore({ controller: { right: Gun } });
 
@@ -33,7 +34,7 @@ export default function App() {
     <>
       <button onClick={() => store.enterVR()}>Enter VR</button>
       <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
-        <XR>
+        <XR store={store}>
             <Bullets />
             <Gltf src="spacestation.glb" />
             <Target targetIdx={0} />

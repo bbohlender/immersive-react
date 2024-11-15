@@ -23,10 +23,10 @@ import { useState, useRef } from "react";
 import { useGLTF, Gltf, PositionalAudio } from "@react-three/drei";
 import { createXRStore, XR, enterVR } from "@react-three/xr";
 import { useBulletStore, BulletData } from "./store"
-import { Target } from "./target"
+import { Target, targets } from "./target"
 import { useScoreStore } from "./score";
 import { useXRControllerButtonEvent, useXRInputSourceStateContext } from "@react-three/xr";
-import { PositionalAudio as PAudio } from "three";
+import { PositionalAudio as PAudio, Vector3, Quaternion } from "three";
 import { useFrame } from "@react-three/fiber";
 import gsap from "gsap";
 
@@ -44,7 +44,7 @@ export default function App() {
     <>
       <button onClick={() => store.enterVR()}>Enter VR</button>
       <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
-        <XR>
+        <XR store={store}>
             <Bullets />
             <Gltf src="spacestation.glb" />
             <Target targetIdx={0} />
