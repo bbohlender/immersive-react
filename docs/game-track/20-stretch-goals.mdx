@@ -46,7 +46,7 @@ export default function App() {
       <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
         <XR store={store}>
             <Bullets />
-            <Gltf src="spacestation.glb" />
+            <Gltf src="https://immersive-react.com/spacestation.glb" />
             <Target targetIdx={0} />
             <Target targetIdx={1} />
             <Target targetIdx={2} />
@@ -74,7 +74,7 @@ const forwardVector = new Vector3(0, 0, -1);
 
 function Bullet({ bulletData }: { bulletData: BulletData }) {
 
-    const { scene } = useGLTF("assets/blaster.glb");
+    const { scene } = useGLTF("https://immersive-react.com/blaster.glb");
     const bulletPrototype = scene.getObjectByName("bullet")! as Mesh;
 
     const ref = useRef<Mesh>(null);
@@ -141,7 +141,7 @@ function Bullet({ bulletData }: { bulletData: BulletData }) {
 
 function Gun() {
   const state = useXRInputSourceStateContext("controller");
-  const { scene } = useGLTF("blaster.glb");
+  const { scene } = useGLTF("https://immersive-react.com/blaster.glb");
   const bulletPrototype = scene.getObjectByName("bullet")!;
   const soundRef = useRef<PAudio>(null);
 
@@ -162,11 +162,11 @@ function Gun() {
   });
 
     return <>
-        <PositionalAudio ref={soundRef} url="assets/laser.ogg" loop={false} />
+        <PositionalAudio ref={soundRef} url="https://immersive-react.com/laser.ogg" loop={false} />
         <primitive object={scene} />
     </>
 };
-useGLTF.preload("blaster.glb");
+useGLTF.preload("https://immersive-react.com/blaster.glb");
 
 `, 'store.ts': `import { create } from "zustand";
 import { generateUUID } from "three/src/math/MathUtils.js";
@@ -201,7 +201,7 @@ export const useBulletStore = create<BulletStore>((set) => ({
 export const targets = new Set<Object3D>();
 
 export const Target = ({ targetIdx }: { targetIdx: number; }) => {
-  const { scene } = useGLTF("assets/target.glb");
+  const { scene } = useGLTF("https://immersive-react.com/target.glb");
   const target = useMemo(() => scene.clone(), [])
 
   useEffect(() => {
@@ -247,7 +247,7 @@ export function Score() {
       quaternion={[-0.4582265217274104, 0, 0, 0.8888354486549235]}
     >
       {formatScoreText(score)}
-      <PositionalAudio ref={soundRef} url="assets/score.ogg" loop={false} />
+      <PositionalAudio ref={soundRef} url="https://immersive-react.com/score.ogg" loop={false} />
     </Text>
   );
 };`}}/>

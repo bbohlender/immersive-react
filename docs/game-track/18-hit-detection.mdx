@@ -34,7 +34,7 @@ export default function App() {
       <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
         <XR store={store}>
             <Bullets />
-            <Gltf src="spacestation.glb" />
+            <Gltf src="https://immersive-react.com/spacestation.glb" />
         </XR>
       </Canvas>
     </>
@@ -57,7 +57,7 @@ const forwardVector = new Vector3(0, 0, -1);
 
 function Bullet({ bulletData }: { bulletData: BulletData }) {
 
-    const { scene } = useGLTF("assets/blaster.glb");
+    const { scene } = useGLTF("https://immersive-react.com/blaster.glb");
     const bulletPrototype = scene.getObjectByName("bullet")! as Mesh;
 
     const ref = useRef<Mesh>(null);
@@ -88,7 +88,7 @@ function Bullet({ bulletData }: { bulletData: BulletData }) {
 
 function Gun() {
   const state = useXRInputSourceStateContext("controller");
-  const { scene } = useGLTF("blaster.glb");
+  const { scene } = useGLTF("https://immersive-react.com/blaster.glb");
   const bulletPrototype = scene.getObjectByName("bullet")!;
 
   useXRControllerButtonEvent(state, "xr-standard-trigger", (state) => {
@@ -104,7 +104,7 @@ function Gun() {
 
   return <primitive object={scene} />;
 };
-useGLTF.preload("blaster.glb");
+useGLTF.preload("https://immersive-react.com/blaster.glb");
 
 `, 'store.ts': `import { create } from "zustand";
 import { generateUUID } from "three/src/math/MathUtils.js";
