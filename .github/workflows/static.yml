@@ -10,7 +10,7 @@ jobs:
     uses: pmndrs/docs/.github/workflows/build.yml@v2
     with:
       mdx: '/'
-      base_path: '/'
+      base_path: ''
       libname: 'React Three XR Workshop'
       icon: '🥽'
       home_redirect: '/introduction-to-react-three-fiber/0-getting-started'
