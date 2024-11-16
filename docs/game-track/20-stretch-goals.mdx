@@ -24,7 +24,7 @@ import { useGLTF, Gltf, PositionalAudio, Environment } from "@react-three/drei";
 import { createXRStore, XR } from "@react-three/xr";
 import { useBulletStore, BulletData } from "./store";
 import { Target, targets } from "./target";
-import { useScoreStore } from "./score";
+import { useScoreStore, Score } from "./score";
 import {
   useXRControllerButtonEvent,
   useXRInputSourceStateContext,
@@ -235,8 +235,19 @@ export const Target = ({ targetIdx }: { targetIdx: number; }) => {
   return <primitive object={target} />;
 };`, 'score.tsx': `import { Text, PositionalAudio } from "@react-three/drei";
 import { PositionalAudio as PAudio } from "three";
-import { useScoreStore } from "./score";
+import { useScoreStore, Score } from "./score";
 import { useRef, useEffect } from "react";
+import { create } from "zustand";
+
+type ScoreStore = {
+  score: number;
+  addScore: () => void;
+};
+
+export const useScoreStore = create<ScoreStore>((set) => ({
+  score: 0,
+  addScore: () => set((state) => ({ score: state.score + 10 })),
+}));
 
 export function Score() {
   const formatScoreText = (score: number) => {
