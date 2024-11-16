@@ -14,7 +14,7 @@ nav: 20
       '@react-three/drei': 'latest',
       '@react-three/xr': 'latest',
       'zustand': 'latest',
-      'gasp': 'latest'
+      'gsap': 'latest'
     },
   }}
   files={{
@@ -30,7 +30,6 @@ import {
   useXRInputSourceStateContext,
 } from "@react-three/xr";
 import { PositionalAudio as PAudio, Vector3, Quaternion } from "three";
-import { useFrame } from "@react-three/fiber";
 import gsap from "gsap";
 
 function GsapTicker() {
@@ -235,7 +234,6 @@ export const Target = ({ targetIdx }: { targetIdx: number; }) => {
   return <primitive object={target} />;
 };`, 'score.tsx': `import { Text, PositionalAudio } from "@react-three/drei";
 import { PositionalAudio as PAudio } from "three";
-import { useScoreStore, Score } from "./score";
 import { useRef, useEffect } from "react";
 import { create } from "zustand";
 
