@@ -18,9 +18,9 @@ nav: 18
   }}
   files={{
     '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { useGLTF, Gltf, Environment } from "@react-three/drei";
-import { createXRStore, XR, enterVR } from "@react-three/xr";
+import { createXRStore, XR } from "@react-three/xr";
 import { useBulletStore, BulletData } from "./store"
 import { useXRControllerButtonEvent, useXRInputSourceStateContext } from "@react-three/xr";
 import { Vector3, Quaternion } from "three";
@@ -30,7 +30,7 @@ const store = createXRStore({ controller: { right: Gun }, emulate: { inject: tru
 export default function App() {
   return (
     <>
-      <button style={{ position: "absolute"; zIndex: "1" }} onClick={() => store.enterVR()}>Enter VR</button>
+      <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterVR()}>Enter VR</button>
       <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
         <XR store={store}>
             <Environment preset="warehouse" />
@@ -115,6 +115,8 @@ type BulletStore = {
   addBullet: (position: Vector3, quaternion: Quaternion) => void;
   removeBullet: (bulletId: string) => void;
 };
+
+const bulletTimeToLive = 2
 
 export const useBulletStore = create<BulletStore>((set) => ({
   bullets: [],
