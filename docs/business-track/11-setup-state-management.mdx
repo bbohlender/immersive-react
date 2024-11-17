@@ -1,0 +1,223 @@
+---
+title: Setup State Management
+description:
+nav: 11
+---
+
+solution of the previous step:
+
+
+<Sandpack
+  template="react-ts"
+  customSetup={{
+    dependencies: {
+      'three': '~0.168.0',
+      '@react-three/fiber': 'latest',
+      '@react-three/drei': 'latest',
+      '@react-three/xr': 'latest',
+      '@react-three/uikit-default': 'latest',
+    },
+  }}
+  files={{
+    '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
+import { useState, useRef } from "react";
+import { useGLTF, Environment } from "@react-three/drei";
+import { createXRStore, XR } from "@react-three/xr";
+import { Model } from "./model";
+
+const store = createXRStore({ emulate: { inject: true } });
+
+export default function App() {
+  return (<>
+    <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterVR()}>
+        Enter VR
+    </button>
+    <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
+      <XR store={store}>
+        <Environment preset="warehouse" />
+        <Model position={[0, 1.1, -0.3]} scale={0.2} />
+        <ColorPicker />
+      </XR>
+    </Canvas>
+    </>
+  )
+}`, 'model.tsx': `import * as THREE from 'three'
+import React, { useRef, useState } from 'react'
+import { useGLTF } from '@react-three/drei'
+import { GLTF } from 'three-stdlib'
+
+type GLTFResult = GLTF & {
+nodes: {
+shoe: THREE.Mesh
+shoe_1: THREE.Mesh
+shoe_2: THREE.Mesh
+shoe_3: THREE.Mesh
+shoe_4: THREE.Mesh
+shoe_5: THREE.Mesh
+shoe_6: THREE.Mesh
+shoe_7: THREE.Mesh
+}
+materials: {
+laces: THREE.MeshStandardMaterial
+mesh: THREE.MeshStandardMaterial
+caps: THREE.MeshStandardMaterial
+inner: THREE.MeshStandardMaterial
+sole: THREE.MeshStandardMaterial
+stripes: THREE.MeshStandardMaterial
+band: THREE.MeshStandardMaterial
+patch: THREE.MeshStandardMaterial
+}
+}
+
+export function Model(props: JSX.IntrinsicElements['group']) {
+  const { nodes, materials } = useGLTF('https://www.immersive-react.com/shoe.glb') as GLTFResult
+  return (
+    <group {...props} dispose={null}>
+      <InteractableMesh geometry={nodes.shoe.geometry} material={materials.laces} />
+      <InteractableMesh geometry={nodes.shoe_1.geometry} material={materials.mesh} />
+      <InteractableMesh geometry={nodes.shoe_2.geometry} material={materials.caps} />
+      <InteractableMesh geometry={nodes.shoe_3.geometry} material={materials.inner} />
+      <InteractableMesh geometry={nodes.shoe_4.geometry} material={materials.sole} />
+      <InteractableMesh
+        geometry={nodes.shoe_5.geometry}
+        material={materials.stripes}
+      />
+      <InteractableMesh geometry={nodes.shoe_6.geometry} material={materials.band} />
+      <InteractableMesh geometry={nodes.shoe_7.geometry} material={materials.patch} />
+    </group>
+  )
+}
+
+useGLTF.preload('https://www.immersive-react.com/shoe.glb');
+
+function InteractableMesh({ geometry, material }: { geometry: BufferGeometry, material: Material }) {
+const [red, setRed] = useState(false)
+return <mesh onClick={() => setRed(!red)} geometry={geometry} material={material} material-color={red ? "red" : "blue"} />
+}
+
+`, 'color-picker.tsx': `
+import { Text, Container, Root } from "@react-three/uikit";
+import { Card } from "@react-three/uikit-default";
+import { Billboard } from "./billboard";
+
+const pickableColors = [
+  "#FFFFFF",
+  "#4ECDC4",
+  "#1A535C",
+  "#FFB400",
+  "#FFE66D",
+  "#3D3A4B",
+  "#E63946",
+  "#A8DADC",
+  "#457B9D",
+  "#2A9D8F",
+  "#F4A261",
+  "#264653",
+];
+
+export function ColorPicker() {
+  return (<Billboard>
+        <Root
+          pixelSize={0.007}
+          anchorY="bottom"
+          flexDirection="column"
+          alignItems="center"
+        >
+    <Card padding={16} display="flex" flexDirection="column" gap={16}>
+      <Text>Color Picker</Text>
+      <Container
+        display="flex"
+        flexDirection="row"
+        gap={12}
+        flexWrap="wrap"
+        maxWidth={200}
+        justifyContent="space-between"
+      >
+        {pickableColors.map((color) => (
+          <Container
+            hover={{ borderColor: "rgb(255,255,255)" }}
+            key={color}
+            cursor="pointer"
+            borderColor={color}
+            borderWidth={2}
+            width={20}
+            height={20}
+            borderRadius={9999}
+            backgroundColor={color}
+            flexDirection="column"
+          ></Container>
+        )}
+      </Container>
+      <Container height={0.5 / 0.007} width={4} backgroundColor="white" />
+    </Card>
+    </Root>
+    </Billboard>
+  )
+}
+
+`, 'billboard.tsx': `
+import { Vector3, Vector3Tuple, Group } from "three";
+import { ReactNode, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+
+const positionHelper = new Vector3();
+
+function Billboard({
+  children,
+}: {
+  children?: ReactNode;
+}) {
+  const ref = useRef<Group>(null);
+  useFrame((state) => {
+    if (ref.current == null) {
+      return;
+    }
+    ref.current.lookAt(state.camera.getWorldPosition(positionHelper));
+    ref.current.rotation.x = 0;
+    ref.current.rotation.z = 0;
+  });
+  return (
+    <group ref={ref} rotation-order="YXZ" position={[0, 0.1, 0]}>
+      {children}
+    </group>
+  );
+}
+
+`}}/>
+
+now do:
+
+- create `state.ts`: `import { create } from "zustand";
+
+const initialColorState = {
+  selected: undefined as undefined | string,
+  laces: "#FFFFFF",
+  mesh: "#FFFFFF",
+  caps: "#FFFFFF",
+  inner: "#FFFFFF",
+  sole: "#FFFFFF",
+  stripes: "#FFFFFF",
+  band: "#FFFFFF",
+  patch: "#FFFFFF",
+};
+
+export const useColorStore = create(
+  combine(initialColorState, (set) => ({
+    setColor(name: string, value: string) {
+      set({ [name]: value });
+    },
+    setSelected(selected: string | undefined) {
+      set({ selected });
+    },
+  }))
+);`
+- to the start of `ColorPicker`: `const selected = useColorStore(state => state.selected)
+    const selectedColor = useColorStore(state => state.selected == null ? undefined : state[state.selected as any])
+  if(selected == null) {
+    return null
+  }`
+- set `borderWidth={4}` and `borderColor={selectedColor}` on the `Card` component
+- set `backgroundColor={selectedColor}` on the Container after `.map` which currently renders the white downward line
+- on the pickableColors.map Containers set the `borderColor` to `color === selectedColor ? color : colors.background`, set the hover borderColor to `color === selectedColor ? undefined : "white"`, and set the `onClick` listener to `() => useColorStore.getState().setColor(selected, color)``
+- change text in the ColorPicker title from `Color Picker` to `selected.toUpperCase() + name.slice(1)`
+- add `onClick={() => useColorStore.getState().setSelected(name)}` to the InstactableMesh component

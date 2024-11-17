@@ -1,7 +1,7 @@
 ---
-title: Finishing Touches
+title: Stretch Goals
 description: 
-nav: 19
+nav: 21
 ---
 
 
@@ -13,13 +13,14 @@ nav: 19
       '@react-three/fiber': 'latest',
       '@react-three/drei': 'latest',
       '@react-three/xr': 'latest',
-      'zustand': 'latest'
+      'zustand': 'latest',
+      'gsap': 'latest'
     },
   }}
   files={{
     '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
-import { useState, useRef } from "react";
-import { useGLTF, Gltf, Environment } from "@react-three/drei";
+import { useRef } from "react";
+import { useGLTF, Gltf, PositionalAudio, Environment } from "@react-three/drei";
 import { createXRStore, XR } from "@react-three/xr";
 import { useBulletStore, BulletData } from "./store";
 import { Target, targets } from "./target";
@@ -28,7 +29,15 @@ import {
   useXRControllerButtonEvent,
   useXRInputSourceStateContext,
 } from "@react-three/xr";
-import { Vector3, Quaternion } from "three";
+import { PositionalAudio as PAudio, Vector3, Quaternion } from "three";
+import gsap from "gsap";
+
+function GsapTicker() {
+  useFrame(() => {
+    gsap.ticker.tick();
+  });
+  return null;
+}
 
 const store = createXRStore({
   controller: { right: Gun },
@@ -53,6 +62,7 @@ export default function App() {
           <Target targetIdx={1} />
           <Target targetIdx={2} />
           <Score />
+          <GsapTicker />
         </XR>
       </Canvas>
     </>
@@ -100,11 +110,28 @@ function Bullet({ bulletData }: { bulletData: BulletData }) {
 
           // Hide and reposition the target
           target.visible = false;
-          setTimeout(() => {
-            target.visible = true;
-            target.position.x = Math.random() * 10 - 5;
-            target.position.z = -Math.random() * 5 - 5;
-          }, 2000);
+          gsap.to(target.scale, {
+            duration: 0.3,
+            x: 0,
+            y: 0,
+            z: 0,
+            onComplete: () => {
+              target.visible = false;
+              setTimeout(() => {
+                target.visible = true;
+                target.position.x = Math.random() * 10 - 5;
+                target.position.z = -Math.random() * 5 - 5;
+
+                // Scale back up
+                gsap.to(target.scale, {
+                  duration: 0.3,
+                  x: 1,
+                  y: 1,
+                  z: 1,
+                });
+              }, 1000);
+            },
+          });
 
           // Update the score
           useScoreStore.getState().addScore();
@@ -126,7 +153,9 @@ function Gun() {
   const state = useXRInputSourceStateContext("controller");
   const { scene } = useGLTF("https://www.immersive-react.com/blaster.glb");
   const bulletPrototype = scene.getObjectByName("bullet")!;
+  const soundRef = useRef<PAudio>(null);
 
+  const gamepad = state.inputSource.gamepad;
   useXRControllerButtonEvent(state, "xr-standard-trigger", (state) => {
     if (state === "pressed") {
       useBulletStore
@@ -135,10 +164,23 @@ function Gun() {
           bulletPrototype.getWorldPosition(new Vector3()),
           bulletPrototype.getWorldQuaternion(new Quaternion())
         );
+      const laserSound = soundRef.current!;
+      if (laserSound.isPlaying) laserSound.stop();
+      laserSound.play();
+      gamepad.hapticActuators[0]?.pulse(0.6, 100);
     }
   });
 
-  return <primitive object={scene} />;
+  return (
+    <>
+      <PositionalAudio
+        ref={soundRef}
+        url="https://www.immersive-react.com/laser.ogg"
+        loop={false}
+      />
+      <primitive object={scene} />
+    </>
+  );
 }
 useGLTF.preload("https://www.immersive-react.com/blaster.glb");
 `, 'store.ts': `import { create } from "zustand";
@@ -150,7 +192,7 @@ type BulletStore = {
   removeBullet: (bulletId: string) => void;
 };
 
-const bulletTimeToLive = 2 
+const bulletTimeToLive = 2
 
 export const useBulletStore = create<BulletStore>((set) => ({
   bullets: [],
@@ -173,8 +215,8 @@ export const useBulletStore = create<BulletStore>((set) => ({
     })),
 }));
 `, 'target.tsx': `import { Object3D } from "three";
-import { useGLTF } from "@react-three/drei"
-import { useMemo, useEffect } from "react"
+import { useMemo, useEffect } from "react";
+import { useGLTF } from "@react-three/drei";
 export const targets = new Set<Object3D>();
 
 export const Target = ({ targetIdx }: { targetIdx: number; }) => {
@@ -190,8 +232,9 @@ export const Target = ({ targetIdx }: { targetIdx: number; }) => {
     targets.add(target);
   }, []);
   return <primitive object={target} />;
-};`, 'score.tsx': `import { Text } from "@react-three/drei";
-import { useScoreStore, Score } from "./score";
+};`, 'score.tsx': `import { Text, PositionalAudio } from "@react-three/drei";
+import { PositionalAudio as PAudio } from "three";
+import { useRef, useEffect } from "react";
 import { create } from "zustand";
 
 type ScoreStore = {
@@ -205,7 +248,22 @@ export const useScoreStore = create<ScoreStore>((set) => ({
 }));
 
 export function Score() {
+  const formatScoreText = (score: number) => {
+    const clampedScore = Math.max(0, Math.min(9999, score));
+    return clampedScore.toString().padStart(4, "0");
+  };
+
   const score = useScoreStore((state) => state.score);
+
+
+  const soundRef = useRef<PAudio>(null);
+  useEffect(() => {
+    if (score > 0) {
+      const scoreSound = soundRef.current!;
+      if (scoreSound.isPlaying) scoreSound.stop();
+      scoreSound.play();
+    }
+  }, [score]);
 
   return (
     <Text
@@ -218,11 +276,7 @@ export function Score() {
       quaternion={[-0.4582265217274104, 0, 0, 0.8888354486549235]}
     >
       {formatScoreText(score)}
+      <PositionalAudio ref={soundRef} url="https://www.immersive-react.com/score.ogg" loop={false} />
     </Text>
   );
-};
-
-function formatScoreText(score: number) {
-  const clampedScore = Math.max(0, Math.min(9999, score));
-  return clampedScore.toString().padStart(4, "0");
 };`}}/>

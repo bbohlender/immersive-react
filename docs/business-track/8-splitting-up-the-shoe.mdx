@@ -4,8 +4,8 @@ description:
 nav: 8
 ---
 
-- remove MyComponent
-- paste output of gltf.pmnd.rs into MyModel
+base line:
+
 
 <Sandpack
   template="react-ts"
@@ -20,26 +20,54 @@ nav: 8
   files={{
     '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
 import { useState, useRef } from "react";
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, Environment } from "@react-three/drei";
 import { createXRStore, XR } from "@react-three/xr";
 
 const store = createXRStore({ emulate: { inject: true } });
 
 export default function App() {
-  return (
-    <>
-      <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterVR()}>Enter VR</button>
-      <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
-        <XR store={store}>
-          <MyModel />
-        </XR>
-      </Canvas>
+  return (<>
+    <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterVR()}>
+        Enter VR
+    </button>
+    <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
+      <XR store={store}>
+        <Environment preset="warehouse" />
+        <MyComponent />
+        <MyModel />
+      </XR>
+    </Canvas>
     </>
-  );
+  )
 }
 
 function MyModel() {
-return null
+    const { scene } = useGLTF("https://www.immersive-react.com/shoe.glb")
+    return <primitive object={scene} />
+}
+
+function MyComponent() {
+    const [red, setRed] = useState(true)
+    const ref = useRef<Mesh>(null)
+    useFrame(() => ref.current?.rotateY(0.01)) 
+    return <mesh ref={ref} onClick={() => setRed(!red)} position={[ 0, 0, 0 ]}>
+        <boxGeometry/>
+        <meshBasicMaterial color={red ? "red" : "blue"} />
+    </mesh>
 }
 
 `}}/>
+
+now do:
+
+- remove MyComponent
+- download the <a download href="https://www.immersive-react.com/shoe.glb">shoe.glb</a> model
+- visit [gltf.pmnd.rs](gltf.pmnd.rs) and drag the shoe.glb file into the page
+- switch on `types` in the right side panel
+- copy and paste output of gltf.pmnd.rs into MyModel
+- repalce `shoe.glb` with `https://www.immersive-react.com/shoe.glb`
+- remove `castShadow`, `receiveShadow`
+- create InteractableMesh component
+- replace `mesh` with InteractableMesh
+- add import 'Model' from "./model"
+- add Model inside the XR tag
