@@ -189,8 +189,6 @@ To convert the score value to a text, we create the `formatScoreText` function, 
 
 ```tsx
 import { Text } from "@react-three/drei";
-import { useScoreStore } from "./score";
-
 
 function formatScoreText(score: number)  {
   const clampedScore = Math.max(0, Math.min(9999, score));
