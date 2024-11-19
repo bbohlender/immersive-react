@@ -37,7 +37,12 @@ import { Model } from "./model";
 import { ColorPicker } from "./color-picker";
 import { useColorStore } from "./store.ts";
 
-const store = createXRStore({ emulate: { inject: true } });
+const store = createXRStore({ emulate: { inject: true }, hand: {
+    grabPointer: false,
+    touchPointer: false,
+    rayPointer: { minDistance: 0 },
+  },
+  controller: { grabPointer: false, rayPointer: { minDistance: 0 } }, });
 
 export default function App() {
   return (<>
@@ -170,6 +175,7 @@ import { colors } from "@react-three/uikit-default";
 export function ColorPicker() {
     const selected = useColorStore(state => state.selected)
     const selectedColor = useColorStore(state => state.selected == null ? undefined : state[state.selected as any])
+    const soundRef = useRef<PAudio>(null)
   if(selected == null) {
     return null
   }

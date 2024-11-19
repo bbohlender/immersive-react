@@ -23,7 +23,12 @@ import { useGLTF, Environment } from "@react-three/drei";
 import { createXRStore, XR } from "@react-three/xr";
 import { Model } from "./model";
 
-const store = createXRStore({ emulate: { inject: true } });
+const store = createXRStore({ emulate: { inject: true }, hand: {
+    grabPointer: false,
+    touchPointer: false,
+    rayPointer: { minDistance: 0 },
+  },
+  controller: { grabPointer: false, rayPointer: { minDistance: 0 } }, });
 
 export default function App() {
   return (<>

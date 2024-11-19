@@ -27,7 +27,12 @@ import { Model } from "./model";
 import { ColorPicker } from "./color-picker";
 import { useColorStore } from "./store";
 
-const store = createXRStore({ emulate: { inject: true } });
+const store = createXRStore({ emulate: { inject: true }, hand: {
+    grabPointer: false,
+    touchPointer: false,
+    rayPointer: { minDistance: 0 },
+  },
+  controller: { grabPointer: false, rayPointer: { minDistance: 0 } }, });
 
 export default function App() {
   return (<>
