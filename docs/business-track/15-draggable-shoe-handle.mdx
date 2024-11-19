@@ -47,6 +47,7 @@ export default function App() {
 import React, { useRef, useState } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { GLTF } from 'three-stdlib'
+import { useColorStore } from './store'
 
 type GLTFResult = GLTF & {
 nodes: {
@@ -94,8 +95,8 @@ export function Model(props: JSX.IntrinsicElements['group']) {
 useGLTF.preload('https://www.immersive-react.com/shoe.glb');
 
 function InteractableMesh({ geometry, material, name }: { name: string, geometry: BufferGeometry, material: Material }) {
-    const color = useColorStore((state) => state[name as any]);
-    return <mesh onClick={() => useColorStore.getState().setSelected(name)} geometry={geometry} material={material} material-color={color} />
+const color = useColorStore((state) => state[name as any]);
+return <mesh onClick={() => useColorStore.getState().setSelected(name)} geometry={geometry} material={material} material-color={color} />
 }
 
 `, 'color-picker.tsx': `
@@ -106,18 +107,18 @@ import { useColorStore } from "./store";
 import { colors } from "@react-three/uikit-default";
 
 const pickableColors = [
-  "#FFFFFF",
-  "#4ECDC4",
-  "#1A535C",
-  "#FFB400",
-  "#FFE66D",
-  "#3D3A4B",
-  "#E63946",
-  "#A8DADC",
-  "#457B9D",
-  "#2A9D8F",
-  "#F4A261",
-  "#264653",
+"#FFFFFF",
+"#4ECDC4",
+"#1A535C",
+"#FFB400",
+"#FFE66D",
+"#3D3A4B",
+"#E63946",
+"#A8DADC",
+"#457B9D",
+"#2A9D8F",
+"#F4A261",
+"#264653",
 ];
 
 export function ColorPicker() {
@@ -159,8 +160,8 @@ export function ColorPicker() {
           ></Container>
         ))}
       </Container>
-      <Container height={0.5 / 0.007} width={4} backgroundColor={selectedColor} />
     </Card>
+    <Container height={0.5 / 0.007} width={4} backgroundColor={selectedColor} />
     </Root>
     </Billboard>
   )
@@ -173,25 +174,25 @@ import { useFrame } from "@react-three/fiber";
 
 const positionHelper = new Vector3();
 
-function Billboard({
-  children,
+export function Billboard({
+children,
 }: {
-  children?: ReactNode;
+children?: ReactNode;
 }) {
-  const ref = useRef<Group>(null);
-  useFrame((state) => {
-    if (ref.current == null) {
-      return;
-    }
-    ref.current.lookAt(state.camera.getWorldPosition(positionHelper));
-    ref.current.rotation.x = 0;
-    ref.current.rotation.z = 0;
-  });
-  return (
-    <group ref={ref} rotation-order="YXZ" position={[0, 0.1, 0]}>
-      {children}
-    </group>
-  );
+const ref = useRef<Group>(null);
+useFrame((state) => {
+if (ref.current == null) {
+return;
+}
+ref.current.lookAt(state.camera.getWorldPosition(positionHelper));
+ref.current.rotation.x = 0;
+ref.current.rotation.z = 0;
+});
+return (
+<group ref={ref} rotation-order="YXZ" position={[0, 0.1, 0]}>
+{children}
+</group>
+);
 }
 
 `, 'store.ts': `
@@ -199,15 +200,15 @@ import { create } from "zustand";
 import { combine } from "zustand/middleware";
 
 const initialColorState = {
-  selected: undefined as undefined | string,
-  laces: "#FFFFFF",
-  mesh: "#FFFFFF",
-  caps: "#FFFFFF",
-  inner: "#FFFFFF",
-  sole: "#FFFFFF",
-  stripes: "#FFFFFF",
-  band: "#FFFFFF",
-  patch: "#FFFFFF",
+selected: undefined as undefined | string,
+laces: "#FFFFFF",
+mesh: "#FFFFFF",
+caps: "#FFFFFF",
+inner: "#FFFFFF",
+sole: "#FFFFFF",
+stripes: "#FFFFFF",
+band: "#FFFFFF",
+patch: "#FFFFFF",
 };
 
 export const useColorStore = create(
@@ -221,7 +222,6 @@ export const useColorStore = create(
   }))
 );
 `}}/>
-
 
 To make the shoe component draggable we create a `Draggabe` component, which we can wrap around the shoe to make it draggable.
 First, we define `positionOffset` as the offset between the draggable handle to the wrapped object.
@@ -282,8 +282,8 @@ onPointerMove={(e) => {
 }}
 ```
 
-
 Lastly, we implement the `onPointerUp` handler to clean up the `draggingPointerId` when dragging ends:
+
 ```tsx
 onPointerUp={() => {
   if (draggingPointerId.current == null) {
@@ -293,8 +293,7 @@ onPointerUp={() => {
 }}
 ```
 
-Finally, we add these handlers to our draggable handle mesh  and set its scaling to `0.1` which results in a sphere with `10cm` radius.
-
+Finally, we add these handlers to our draggable handle mesh and set its scaling to `0.1` which results in a sphere with `10cm` radius.
 
 ```tsx
 <mesh
@@ -317,4 +316,3 @@ Finally, we use the Draggable component by wrapping the InteractablMeshes with i
   {...}
 </Draggable>
 ```
-

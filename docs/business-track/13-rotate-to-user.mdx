@@ -100,63 +100,61 @@ return <mesh onClick={() => setRed(!red)} geometry={geometry} material={material
 import { Text, Container, Root } from "@react-three/uikit";
 import { Card } from "@react-three/uikit-default";
 
-
 const pickableColors = [
-  "#FFFFFF",
-  "#4ECDC4",
-  "#1A535C",
-  "#FFB400",
-  "#FFE66D",
-  "#3D3A4B",
-  "#E63946",
-  "#A8DADC",
-  "#457B9D",
-  "#2A9D8F",
-  "#F4A261",
-  "#264653",
+"#FFFFFF",
+"#4ECDC4",
+"#1A535C",
+"#FFB400",
+"#FFE66D",
+"#3D3A4B",
+"#E63946",
+"#A8DADC",
+"#457B9D",
+"#2A9D8F",
+"#F4A261",
+"#264653",
 ];
 
 export function ColorPicker() {
   return (
-        <Root
-          pixelSize={0.007}
-          anchorY="bottom"
-          flexDirection="column"
-          alignItems="center"
+    <Root
+      pixelSize={0.007}
+      anchorY="bottom"
+      flexDirection="column"
+      alignItems="center"
+    >
+      <Card padding={16} display="flex" flexDirection="column" gap={16}>
+        <Text>Color Picker</Text>
+        <Container
+          display="flex"
+          flexDirection="row"
+          gap={12}
+          flexWrap="wrap"
+          maxWidth={200}
+          justifyContent="space-between"
         >
-    <Card padding={16} display="flex" flexDirection="column" gap={16}>
-      <Text>Color Picker</Text>
-      <Container
-        display="flex"
-        flexDirection="row"
-        gap={12}
-        flexWrap="wrap"
-        maxWidth={200}
-        justifyContent="space-between"
-      >
-        {pickableColors.map((color) => (
-          <Container
-            hover={{ borderColor: "rgb(255,255,255)" }}
-            key={color}
-            cursor="pointer"
-            borderColor={color}
-            borderWidth={2}
-            width={20}
-            height={20}
-            borderRadius={9999}
-            backgroundColor="rgb(255,0,0)"
-            flexDirection="column"
-          ></Container>
-        ))}
-      </Container>
+          {pickableColors.map((color) => (
+            <Container
+              hover={{ borderColor: "rgb(255,255,255)" }}
+              key={color}
+              cursor="pointer"
+              borderColor={color}
+              borderWidth={2}
+              width={20}
+              height={20}
+              borderRadius={9999}
+              backgroundColor="rgb(255,0,0)"
+              flexDirection="column"
+            ></Container>
+          ))}
+        </Container>
+      </Card>
       <Container height={0.5 / 0.007} width={4} backgroundColor="white" />
-    </Card>
     </Root>
-  )
+  );
 }
 
 `, 'billboard.tsx': ``}}/>
-
 
 To build the Billboard component, we create the `Billboard` component which returns a `<group>` that is offset by 0.1 on the Y-Axis and takes optional children of type `ReactNode` as parameters.
 
@@ -186,11 +184,11 @@ const positionHelper = new Vector3();
 
 //inside the Billboard component
 useFrame((state) => {
-    if (ref.current == null) {
-      return;
-    }
-    ref.current.lookAt(state.camera.getWorldPosition(positionHelper));
-    ref.current.rotation.x = 0;
-    ref.current.rotation.z = 0;
+  if (ref.current == null) {
+    return;
+  }
+  ref.current.lookAt(state.camera.getWorldPosition(positionHelper));
+  ref.current.rotation.x = 0;
+  ref.current.rotation.z = 0;
 });
 ```

@@ -47,8 +47,7 @@ import React, { useRef, useState } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { GLTF } from 'three-stdlib'
 import { useColorStore } from "./store";
-import { Draggable } from "./draggable;
-import { Draggable } from "./draggable"
+import { Draggable } from "./draggable";
 
 type GLTFResult = GLTF & {
 nodes: {
@@ -163,8 +162,8 @@ export function ColorPicker() {
           ></Container>
         ))}
       </Container>
-      <Container height={0.5 / 0.007} width={4} backgroundColor={selectedColor} />
     </Card>
+    <Container height={0.5 / 0.007} width={4} backgroundColor={selectedColor} />
     </Root>
     </Billboard>
   )
@@ -177,7 +176,7 @@ import { useFrame } from "@react-three/fiber";
 
 const positionHelper = new Vector3();
 
-function Billboard({
+export function Billboard({
   children,
 }: {
   children?: ReactNode;
