@@ -4,6 +4,7 @@ description:
 nav: 23
 ---
 
+In our last step, we introduce  audio, haptic feedback, and visual effects to make the game more fun and increase the immersion.
 
 <Sandpack
   template="react-ts"
@@ -75,17 +76,19 @@ const forwardVector = new Vector3();
 
 function Bullet({ bulletData }: { bulletData: BulletData }) {
   const { scene } = useGLTF("https://www.immersive-react.com/blaster.glb");
-  const bulletPrototype = scene.getObjectByName("bullet")! as Mesh;
+  const bulletModel = scene.getObjectByName("bullet")! as Mesh;
 
   const ref = useRef<Mesh>(null);
 
   useFrame(() => {
+    //current time in milliseconds
     const now = performance.now();
-    const bulletObject = ref.current!;
+    //computes the forward vector depending on the bullet rotation
     const directionVector = forwardVector
       .set(0, 0, -1)
-      .applyQuaternion(bulletObject.quaternion);
-    bulletObject.position.addVectors(
+      .applyQuaternion(bulletData.initQuaternion);
+    //add the initial position and the directionVector multiplied by the bullet speed and the ime since the bullet was spawned
+    ref.current!.position.addVectors(
       bulletData.initPosition,
       directionVector.multiplyScalar(
         (bulletSpeed * (now - bulletData.timestamp)) / 1000
@@ -94,7 +97,7 @@ function Bullet({ bulletData }: { bulletData: BulletData }) {
     [...targets]
       .filter((target) => target.visible)
       .forEach((target) => {
-        const distance = target.position.distanceTo(bulletObject.position);
+        const distance = target.position.distanceTo(ref.current!.position);
         if (distance < 1) {
           useBulletStore.getState().removeBullet(bulletData.id);
 
@@ -115,8 +118,8 @@ function Bullet({ bulletData }: { bulletData: BulletData }) {
   return (
     <mesh
       ref={ref}
-      geometry={bulletPrototype.geometry}
-      material={bulletPrototype.material}
+      geometry={bulletModel.geometry}
+      material={bulletModel.material}
       quaternion={bulletData.initQuaternion}
     ></mesh>
   );
@@ -125,15 +128,15 @@ function Bullet({ bulletData }: { bulletData: BulletData }) {
 function Gun() {
   const state = useXRInputSourceStateContext("controller");
   const { scene } = useGLTF("https://www.immersive-react.com/blaster.glb");
-  const bulletPrototype = scene.getObjectByName("bullet")!;
+  const bulletModel = scene.getObjectByName("bullet")!;
 
   useXRControllerButtonEvent(state, "xr-standard-trigger", (state) => {
     if (state === "pressed") {
       useBulletStore
         .getState()
         .addBullet(
-          bulletPrototype.getWorldPosition(new Vector3()),
-          bulletPrototype.getWorldQuaternion(new Quaternion())
+          bulletModel.getWorldPosition(new Vector3()),
+          bulletModel.getWorldQuaternion(new Quaternion())
         );
     }
   });
@@ -226,3 +229,123 @@ function formatScoreText(score: number) {
   const clampedScore = Math.max(0, Math.min(9999, score));
   return clampedScore.toString().padStart(4, "0");
 };`}}/>
+
+
+We start by adding audio for shooting and scoring.
+Using the `PositionalAudio` component from `@react-three/drei`, we can make sounds feel like they are coming from specific points in 3D space.
+
+First, we add add a sound for when the player fires the blaster in the `Gun` component. We add a `PositionalAudio` into the `Gun` component and assign the `"https://www.immersive-react.com/laser.ogg"` sound to it, store a reference to it in `soundRef`, and play the sound through the reference when the trigger is pressed.
+
+```tsx
+export function Gun() {
+  // ... existing code
+  const soundRef = useRef<PAudio>(null);
+
+  useXRControllerButtonEvent(state, "xr-standard-trigger", (state) => {
+    if (state === "pressed") {
+      // ... existing code
+      const laserSound = soundRef.current!;
+      //restarts playing when the sound is already currently played
+      if (laserSound.isPlaying) laserSound.stop();
+      laserSound.play();
+    }
+  });
+
+  return (
+    <>
+      <primitive object={scene} />
+      <PositionalAudio ref={soundRef} url="https://www.immersive-react.com/laser.ogg" loop={false} />
+    </>
+  );
+};
+```
+
+### Adding Audio in `score.tsx` for Scoring
+
+Next, we add a score sound to the `Score` component in `score.tsx`. We play the sound whenever the score changes using `useEffect`. Just like before, we add a `PositionalAudio` component and establish a reference. The effect re-runs and plays the sound every time the score is changed, except for the first time when the score is at 0.
+
+```tsx
+export function Score() {
+  const score = useScoreStore((state) => state.score);
+  const soundRef = useRef<PAudio>(null);
+
+  useEffect(() => {
+    if (score > 0) {
+      const scoreSound = soundRef.current!;
+      if (scoreSound.isPlaying) scoreSound.stop();
+      scoreSound.play();
+    }
+  }, [score]);
+
+  return (
+    <Text
+    // ... existing props
+    >
+      {formatScoreText(score)}
+      <PositionalAudio ref={soundRef} url="assets/score.ogg" loop={false} />
+    </Text>
+  );
+};
+```
+
+Next, we add haptic feedback to the right controller through our `Gun` component in `App.tsx`. We make the controller pulsate with a vibration at 60% intensity for 100 milliseconds every time the controller's trigger is pressed.
+
+```tsx
+export function Gun() {
+  // ... existing code
+  const gamepad = state.inputSource.gamepad;
+  useXRControllerButtonEvent(state, "xr-standard-trigger", (state) => {
+    if (state === "pressed") {
+      // ... existing code
+      gamepad.hapticActuators[0]?.pulse(0.6, 100);
+    }
+  });
+  // ... existing code
+};
+```
+
+In the last step, we add visual feedback by animating the target's disappearance and reappearance using GSAP. We replace the `setTimeout`-based disappear/reappear logic with GSAP animations in our `Bullet` component in `App.tsx`. The following gasp code scales down the target over 0.3 seconds upon being hit, creating a smooth disappearing effect. Then, after 1 second, the target scales back up to its original size, for a re-appearing effect.
+
+```tsx
+gsap.to(target.scale, {
+  duration: 0.3,
+  x: 0,
+  y: 0,
+  z: 0,
+  onComplete: () => {
+    target.visible = false;
+    setTimeout(() => {
+      target.visible = true;
+      target.position.x = Math.random() * 10 - 5;
+      target.position.z = -Math.random() * 5 - 5;
+
+      // Scale back up
+      gsap.to(target.scale, {
+        duration: 0.3,
+        x: 1,
+        y: 1,
+        z: 1,
+      });
+    }, 1000);
+  },
+});
+```
+
+Lastly, we need to synchronize the GSAP animations with WebXR updates. Therefore we add a manual GSAP ticker component into the `XR` tag in our `App.tsx`:
+
+```tsx
+function GsapTicker() {
+  useFrame(() => {
+    gsap.ticker.tick();
+  });
+  return null;
+};
+
+//in our 'export default function App' 
+<Canvas >
+  <XR store={store}>
+    {...}
+    <GsapTicker />
+  </XR>
+</Canvas>
+```

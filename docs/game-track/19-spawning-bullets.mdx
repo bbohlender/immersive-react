@@ -4,6 +4,8 @@ description:
 nav: 19
 ---
 
+After replacing our controller with a gun, our next step is to spawn bullets when the user presses the trigger of the controller. For that we will setup the bullet state management and setup a component for rendering the bullets.
+
 <Sandpack
   template="react-ts"
   customSetup={{
@@ -54,3 +56,122 @@ function Gun() {
 };
 
 `, 'store.ts': ``}}/>
+
+For our bullet state management we are using Zustand. For creating our Zustand bullet store, we first the `BulletData` type in `store.ts`. The `BulletData` type contains the ID, initial spawn position, and initial spawn rotation for each bullet.
+
+```tsx
+import { Quaternion, Vector3 } from "three";
+
+type BulletData = {
+  id: string;
+  initPosition: Vector3;
+  initQuaternion: Quaternion;
+};
+```
+
+Next, we create the Zustand store including an action to spawn a bullet inside `store.ts`. The store contains an initially empty array of type `BulletData[]` called `bullets` and a `addBullet` function, which adds a new bullet to the store by generating a unique ID (`generateUUID`), setting its position and orientation, and appending it to the `bullets` array.
+
+```tsx
+import { create } from "zustand";
+import { generateUUID } from "three/src/math/MathUtils.js";
+
+type BulletStore = {
+  bullets: BulletData[];
+  addBullet: (position: Vector3, quaternion: Quaternion) => void;
+};
+
+export const useBulletStore = create<BulletStore>((set) => ({
+  bullets: [],
+  addBullet: (position, quaternion) =>
+    set((state) => {
+      const newBullet = {
+        id: generateUUID(),
+        initPosition: position,
+        initQuaternion: quaternion,
+      };
+      return { bullets: [...state.bullets, newBullet] };
+    }),
+}));
+```
+
+The next step, is to render the bullets in our store. To achieve rendering the bullets we add a `Bullet` and `Bullets` components to our `App.tsx` file. 
+
+We add a `Bullet` componet to render a gey sphere at the provided initial position and initial rotation.
+
+```tsx
+function Bullet({ bulletData }: {
+  bulletData: BulletData;
+}) {
+  return (
+    <mesh
+      position={bulletData.initPosition}
+      quaternion={bulletData.initQuaternion}
+    >
+      <sphereGeometry args={[0.02]} />
+      <meshStandardMaterial color="grey" />
+    </mesh>
+  );
+};
+```
+
+Next, we add a `Bullets` component that maps all bullets in our store to one `Bullet` component. The component retrieves the array of bullets from Zustand and maps each entry to a `Bullet` component using the `bulletData.id` as the `key` and providing the `bulletData` to the `Bullet` component.
+
+```tsx
+export const Bullets = () => {
+  const bullets = useBulletStore((state) => state.bullets);
+  return (
+    <>
+      {bullets.map((bulletData) => (
+        <Bullet bulletData={bulletData} key={bulletData.id} />
+      ))}
+    </>
+  );
+};
+```
+
+Next, we add `Bullets` component into the `XR` tag inside `App.tsx`, which completes the rendering setup for bullets in the scene.
+
+```tsx
+<Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
+  <XR store={store}>
+      <Environment preset="warehouse" />
+      <Bullets />
+  </XR>
+</Canvas>
+```
+
+In the next step, we listen to controllers trigger beeing pressed to spawn a new bullet at the barrel of the `Gun` component.
+
+We start by creating a reference to the barrel mesh. This reference allows us to retrieve the barrel's position and orientation when we need to spawn a bullet.
+
+```tsx
+//inside the Gun component
+const barrelRef = useRef<Mesh>(null);
+
+return (
+  <group rotation-x={-Math.PI / 8}>
+    <mesh ref={barrelRef}>
+      {...}
+    </mesh>
+    {...}
+  </group>
+);
+```
+
+Finally, we detect when the trigger of the controller trigger is pressed and spawn a bullet with the barrel's position and rotation inside of the `Gun` component in `App.tsx`. To listen to the controller press event, we first need to retrieve the controller's state from the context using the `useXRInputSourceStateContext("controller)` hook. The controller state can now be used in the `useXRControllerButtonEvent` hook to listen to the state changes of the `"xr-standard-trigger"` button. Once the state is equal to `"pressed"`, we spawn the bullet at the world position and rotation of the barrel.
+
+```tsx
+// Retrieve the state context for the controller
+const state = useXRInputSourceStateContext("controller");
+// Handle trigger press event to spawn a bullet
+useXRControllerButtonEvent(state, "xr-standard-trigger", (state) => {
+  if (state === "pressed" && barrelRef.current) {
+    useBulletStore
+      .getState()
+      .addBullet(
+        barrelRef.current.getWorldPosition(new Vector3()),
+        barrelRef.current.getWorldQuaternion(new Quaternion())
+      );
+  }
+});
+```

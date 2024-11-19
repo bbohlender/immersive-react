@@ -4,10 +4,7 @@ description:
 nav: 18
 ---
 
-- remove MyComponent
-- remove MyModel
-- add Gun component
-- add Gun to the createXRStore config
+We begin our target shooting game by adding a custom gun model to the right controller.
 
 <Sandpack
   template="react-ts"
@@ -59,3 +56,33 @@ function MyComponent() {
 }
 
 `}}/>
+
+First, we remove the `MyComponent` and `MyModel` components and their usage inside of the `Canvas`.
+
+
+Next, we add a `Gun` component that into `App.tsx`. The `Gun` component renders a basic gun model using meshes, with cube geometries, and standard materials. We are using a **group**, which allows to group our meshes together.
+
+```tsx
+export function Gun() {
+  return (
+    <group rotation-x={-Math.PI / 8}>
+      <mesh>
+        <boxGeometry args={[0.035, 0.05, 0.16]} />
+        <meshStandardMaterial color="orange" />
+      </mesh>
+      <mesh rotation-x={Math.PI / 2} position={[0, -0.05, 0.05]}>
+        <boxGeometry args={[0.025, 0.04, 0.1]} />
+        <meshStandardMaterial color="grey" />
+      </mesh>
+    </group>
+  );
+};
+```
+
+To use our new `Gun` component as the right controller, we add it to the `createXRStore` configuration like this:
+
+```tsx
+const store = createXRStore({ controller: { right: Gun }, emulate: { inject: true } });
+```
+
+This overrides the default right controller, displaying the custom gun model instead, while the left controller still shows the default controller model.

@@ -98,17 +98,19 @@ const forwardVector = new Vector3();
 
 function Bullet({ bulletData }: { bulletData: BulletData }) {
   const { scene } = useGLTF("https://www.immersive-react.com/blaster.glb");
-  const bulletPrototype = scene.getObjectByName("bullet")! as Mesh;
+  const bulletModel = scene.getObjectByName("bullet")! as Mesh;
 
   const ref = useRef<Mesh>(null);
 
   useFrame(() => {
+    //current time in milliseconds
     const now = performance.now();
-    const bulletObject = ref.current!;
+    //computes the forward vector depending on the bullet rotation
     const directionVector = forwardVector
       .set(0, 0, -1)
-      .applyQuaternion(bulletObject.quaternion);
-    bulletObject.position.addVectors(
+      .applyQuaternion(bulletData.initQuaternion);
+    //add the initial position and the directionVector multiplied by the bullet speed and the ime since the bullet was spawned
+    ref.current!.position.addVectors(
       bulletData.initPosition,
       directionVector.multiplyScalar(
         (bulletSpeed * (now - bulletData.timestamp)) / 1000
@@ -117,7 +119,7 @@ function Bullet({ bulletData }: { bulletData: BulletData }) {
     [...targets]
       .filter((target) => target.visible)
       .forEach((target) => {
-        const distance = target.position.distanceTo(bulletObject.position);
+        const distance = target.position.distanceTo(ref.current!.position);
         if (distance < 1) {
           useBulletStore.getState().removeBullet(bulletData.id);
 
@@ -155,8 +157,8 @@ function Bullet({ bulletData }: { bulletData: BulletData }) {
   return (
     <mesh
       ref={ref}
-      geometry={bulletPrototype.geometry}
-      material={bulletPrototype.material}
+      geometry={bulletModel.geometry}
+      material={bulletModel.material}
       quaternion={bulletData.initQuaternion}
     ></mesh>
   );
@@ -165,7 +167,7 @@ function Bullet({ bulletData }: { bulletData: BulletData }) {
 function Gun() {
   const state = useXRInputSourceStateContext("controller");
   const { scene } = useGLTF("https://www.immersive-react.com/blaster.glb");
-  const bulletPrototype = scene.getObjectByName("bullet")!;
+  const bulletModel = scene.getObjectByName("bullet")!;
   const soundRef = useRef<PAudio>(null);
 
   const gamepad = state.inputSource.gamepad;
@@ -174,8 +176,8 @@ function Gun() {
       useBulletStore
         .getState()
         .addBullet(
-          bulletPrototype.getWorldPosition(new Vector3()),
-          bulletPrototype.getWorldQuaternion(new Quaternion())
+          bulletModel.getWorldPosition(new Vector3()),
+          bulletModel.getWorldQuaternion(new Quaternion())
         );
       const laserSound = soundRef.current!;
       if (laserSound.isPlaying) laserSound.stop();

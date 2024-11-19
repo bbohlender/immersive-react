@@ -4,6 +4,7 @@ description:
 nav: 22
 ---
 
+Our next goal is to make the game playable by making our bullets hit the targets and display a score to the user.
 
 <Sandpack
   template="react-ts"
@@ -24,6 +25,7 @@ import { createXRStore, XR } from "@react-three/xr";
 import { useBulletStore, BulletData } from "./store"
 import { useXRControllerButtonEvent, useXRInputSourceStateContext } from "@react-three/xr";
 import { Vector3, Quaternion } from "three";
+import { Target } from "./target";
 
 const store = createXRStore({ controller: { right: Gun }, emulate: { inject: true } });
 
@@ -36,6 +38,9 @@ export default function App() {
             <Environment preset="warehouse" />
             <Bullets />
             <Gltf src="https://www.immersive-react.com/spacestation.glb" />
+            <Target targetIdx={0} />
+            <Target targetIdx={1} />
+            <Target targetIdx={2} />
         </XR>
       </Canvas>
     </>
@@ -59,29 +64,31 @@ const forwardVector = new Vector3();
 function Bullet({ bulletData }: { bulletData: BulletData }) {
 
     const { scene } = useGLTF("https://www.immersive-react.com/blaster.glb");
-    const bulletPrototype = scene.getObjectByName("bullet")! as Mesh;
+    const bulletModel = scene.getObjectByName("bullet")! as Mesh;
 
     const ref = useRef<Mesh>(null);
 
     useFrame(() => {
-        const now = performance.now();
-        const bulletObject = ref.current!;
-        const directionVector = forwardVector
+      //current time in milliseconds
+      const now = performance.now();
+      //computes the forward vector depending on the bullet rotation
+      const directionVector = forwardVector
         .set(0, 0, -1)
-        .applyQuaternion(bulletObject.quaternion);
-        bulletObject.position.addVectors(
+        .applyQuaternion(bulletData.initQuaternion);
+      //add the initial position and the directionVector multiplied by the bullet speed and the ime since the bullet was spawned
+      ref.current!.position.addVectors(
         bulletData.initPosition,
         directionVector.multiplyScalar(
-            (bulletSpeed * (now - bulletData.timestamp)) / 1000
+          (bulletSpeed * (now - bulletData.timestamp)) / 1000
         )
-        );
+      );
     });
 
     return (
         <mesh
             ref={ref}
-            geometry={bulletPrototype.geometry}
-            material={bulletPrototype.material}
+            geometry={bulletModel.geometry}
+            material={bulletModel.material}
             quaternion={bulletData.initQuaternion}
         ></mesh>
     );
@@ -90,15 +97,15 @@ function Bullet({ bulletData }: { bulletData: BulletData }) {
 function Gun() {
   const state = useXRInputSourceStateContext("controller");
   const { scene } = useGLTF("https://www.immersive-react.com/blaster.glb");
-  const bulletPrototype = scene.getObjectByName("bullet")!;
+  const bulletModel = scene.getObjectByName("bullet")!;
 
   useXRControllerButtonEvent(state, "xr-standard-trigger", (state) => {
     if (state === "pressed") {
       useBulletStore
         .getState()
         .addBullet(
-          bulletPrototype.getWorldPosition(new Vector3()),
-          bulletPrototype.getWorldQuaternion(new Quaternion())
+          bulletModel.getWorldPosition(new Vector3()),
+          bulletModel.getWorldQuaternion(new Quaternion())
         );
     }
   });
@@ -138,4 +145,114 @@ export const useBulletStore = create<BulletStore>((set) => ({
       bullets: state.bullets.filter((bullet) => bullet.id !== bulletId),
     })),
 }));
-`}}/>
+`, 'target.tsx': `import { Object3D } from "three";
+import { useGLTF } from "@react-three/drei"
+import { useMemo, useEffect } from "react"
+export const targets = new Set<Object3D>();
+
+export const Target = ({ targetIdx }: { targetIdx: number; }) => {
+  const { scene } = useGLTF("https://www.immersive-react.com/target.glb");
+  const target = useMemo(() => scene.clone(), [])
+
+  useEffect(() => {
+    target.position.set(
+      Math.random() * 10 - 5,
+      targetIdx * 2 + 1,
+      -Math.random() * 5 - 5
+    );
+    targets.add(target);
+  }, []);
+  return <primitive object={target} />;
+};`, 'score.tsx': ``}}/>
+
+
+We start by displaying the player's score using the `Text` component from `@react-three/drei`. We use Zustand to store the player's the score.
+
+First, in `score.tsx` we define the score store and add an `addScore` function to increase the score by 10 points when a target is hit.
+
+```tsx
+import { create } from "zustand";
+
+type ScoreStore = {
+  score: number;
+  addScore: () => void;
+};
+
+export const useScoreStore = create<ScoreStore>((set) => ({
+  score: 0,
+  addScore: () => set((state) => ({ score: state.score + 10 })),
+}));
+```
+
+Next, we use our score store to render the score using the `Text` component positioned and rotated to align with the monitor in the space station model.
+To convert the score value to a text, we create the `formatScoreText` function, which formats the score to be a 4-digit number, clamped between 0 and 9999.
+
+```tsx
+import { Text } from "@react-three/drei";
+import { useScoreStore } from "./score";
+
+
+function formatScoreText(score: number)  {
+  const clampedScore = Math.max(0, Math.min(9999, score));
+  return clampedScore.toString().padStart(4, "0");
+};
+
+export function Score() {
+  const score = useScoreStore((state) => state.score);
+  return (
+    <Text
+      color={0xffa276}
+      font="https://www.immersive-react.com/SpaceMono-Bold.ttf"
+      fontSize={0.52}
+      anchorX="center"
+      anchorY="middle"
+      position={[0, 0.67, -1.44]}
+      quaternion={[-0.4582265217274104, 0, 0, 0.8888354486549235]}
+    >
+      {formatScoreText(score)}
+    </Text>
+  );
+};
+```
+
+Finally, we add the `Score` component into the `XR` tag in `App.tsx`.
+
+```tsx
+<Canvas>
+  <XR store={store}>
+    {...}
+    <Score />
+  </XR>
+</Canvas>
+```
+
+
+Next, we need to calculate the store by determining if a bullet hits a target.
+For that we use a proximity-based hit test. This approach checks the distance between the a bullet and each target. If the distance is below `1` meter, a hit is registered.
+
+We implement the hit detection logic inside `useFrame` callback in the `Bullet` component in `App.tsx`. On every frame we check if the distance between each bullet and target is less than 1 unit. If so, the score increases by 10 points, and the target becomes invisible for 2 seconds before reappearing at a random position.
+
+```tsx
+useFrame(() => {
+  // ... existing movement code
+  [...targets]
+    .filter((target) => target.visible)
+    .forEach((target) => {
+      const distance = target.position.distanceTo(ref.current!.position);
+      if (distance < 1) {
+        useBulletStore.getState().removeBullet(bulletData.id);
+
+        // Hide and reposition the target
+        target.visible = false;
+        setTimeout(() => {
+          target.visible = true;
+          target.position.x = Math.random() * 10 - 5;
+          target.position.z = -Math.random() * 5 - 5;
+        }, 2000);
+
+        // Update the score
+        useScoreStore.getState().addScore();
+      }
+    });
+});
+```

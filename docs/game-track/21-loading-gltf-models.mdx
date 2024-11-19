@@ -4,6 +4,7 @@ description:
 nav: 21
 ---
 
+Our next goal is to replace our simple models with more detailed 3D models including the models for the shooting targets.
 
 <Sandpack
   template="react-ts"
@@ -60,17 +61,19 @@ function Bullet({ bulletData }: { bulletData: BulletData }) {
     const ref = useRef<Mesh>(null);
 
     useFrame(() => {
-        const now = performance.now();
-        const bulletObject = ref.current!;
-        const directionVector = forwardVector
+      //current time in milliseconds
+      const now = performance.now();
+      //computes the forward vector depending on the bullet rotation
+      const directionVector = forwardVector
         .set(0, 0, -1)
-        .applyQuaternion(bulletObject.quaternion);
-        bulletObject.position.addVectors(
+        .applyQuaternion(bulletData.initQuaternion);
+      //add the initial position and the directionVector multiplied by the bullet speed and the ime since the bullet was spawned
+      ref.current!.position.addVectors(
         bulletData.initPosition,
         directionVector.multiplyScalar(
-            (bulletSpeed * (now - bulletData.timestamp)) / 1000
+          (bulletSpeed * (now - bulletData.timestamp)) / 1000
         )
-        );
+      );
     });
 
     return (
@@ -141,4 +144,93 @@ export const useBulletStore = create<BulletStore>((set) => ({
       bullets: state.bullets.filter((bullet) => bullet.id !== bulletId),
     })),
 }));
-`}}/>
+`, 'target.tsx': ``}}/>
+
+
+First, we add an a space station into the `XR` tag in our `App.tsx` as our new environment using the `GLTF` component form `@react-three/drei`.
+
+```tsx
+<Canvas>
+  <XR store={store}>
+    {...}
+    <Gltf src="https://www.immersive-react.com/spacestation.glb" />
+  </XR>
+</Canvas>
+```
+
+Next, we replace the basic geometry of the gun with a 3D blaster model. Using `useGLTF` we load the GLTF model from `"https://www.immersive-react.com/blaster.glb"` and attach the resulting 3D scene into the controller using `<primtive object={scene}>`. Additionally, we get the bullet's position and rotation inside of the model to launch our own bullet with the exact same transformation.
+
+```tsx
+export function Gun() {
+  const state = useXRInputSourceStateContext("controller");
+  const { scene } = useGLTF("https://www.immersive-react.com/blaster.glb");
+  const bulletModel = scene.getObjectByName("bullet")!;
+
+  useXRControllerButtonEvent(state, "xr-standard-trigger", (state) => {
+    ...
+  });
+
+  return <primitive object={scene} />;
+};
+
+// preload the gun model so that it's ready when the user enters VR
+useGLTF.preload("https://www.immersive-react.com/blaster.glb");
+```
+
+Next, we update the `Bullet` component in `App.tsx` to render the bullet using the geometry and material from the GLTF model. Therefore, we load the blaster model using `useGLTF` and get tbe bullet object inside the model. Next, we remove the `sphereGeometry` and `meshStandardMaterial` tags and assign the geometry and material from the bullet model directly to the mesh.
+
+```tsx
+function Bullet({ bulletData }: { bulletData: BulletData }) {
+  //... unchanged
+  const { scene } = useGLTF("assets/blaster.glb");
+  const bulletModel = scene.getObjectByName("bullet")! as Mesh;
+
+  return (
+    <mesh
+      ref={ref}
+      geometry={bulletModel.geometry}
+      material={bulletModel.material}
+      quaternion={bulletData.initQuaternion}
+    ></mesh>
+  );
+};
+```
+
+In the last step, we add three randomly positioned shooting targets to our scene. Since we need access to each target for calculating the hit tests in the next chapter, we simply store them in an exported array inside `target.tsx` that can be accessed from anywhere.
+
+```tsx
+import { Object3D } from "three";
+export const targets = new Set<Object3D>();
+```
+
+Next, we load and clone the target model so we can position each target individually while `useGLTF` returns the same model instance. Then, we add the target to the set of targets and set its position to a random point inside of `useEffect`.
+
+```tsx
+export function Target({ targetIdx }: { targetIdx: number }) {
+  const { scene } = useGLTF("assets/target.glb");
+  const target = useMemo(() => scene.clone(), [])
+
+  useEffect(() => {
+    target.position.set(
+      Math.random() * 10 - 5,
+      targetIdx * 2 + 1,
+      -Math.random() * 5 - 5
+    );
+    targets.add(target);
+  }, []);
+  return <primitive object={target} />;
+};
+```
+
+Finally, we add three targets to the `XR` tag in `App.tsx`:
+
+```tsx
+<Canvas >
+  <XR store={store}>
+      {...}
+      <Target targetIdx={0} />
+      <Target targetIdx={1} />
+      <Target targetIdx={2} />
+  </XR>
+</Canvas>
+```
