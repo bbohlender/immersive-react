@@ -15,6 +15,7 @@ With the Color Picker User Interface in place, we need to make it and change the
       '@react-three/drei': 'latest',
       '@react-three/xr': 'latest',
       '@react-three/uikit-default': 'latest',
+      'zustand': "latest"
     },
   }}
   files={{
@@ -159,6 +160,7 @@ export function ColorPicker() {
 import { Vector3, Vector3Tuple, Group } from "three";
 import { ReactNode, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
+import { colors } from "@react-three/uikit-default";
 
 const positionHelper = new Vector3();
 
