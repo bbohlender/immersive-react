@@ -36,7 +36,6 @@ import { createXRStore, XR } from "@react-three/xr";
 import { Model } from "./model";
 import { ColorPicker } from "./color-picker";
 import { useColorStore } from "./store.ts";
-import { Draggable } from "./draggable";
 
 const store = createXRStore({ emulate: { inject: true } });
 
@@ -59,10 +58,11 @@ export default function App() {
 }`, 'model.tsx': `import * as THREE from 'three'
 import React, { useRef, useState } from 'react'
 import { useGLTF, PositionalAudio } from '@react-three/drei'
-import { GLTF } from 'three-stdlib'
 import { PositionalAudio as PAudio } from "three";
+import { GLTF } from 'three-stdlib'
 import { useColorStore } from "./store";
 import { useHover, isXRInputSourceState } from "@react-three/xr";
+import { Draggable } from "./draggable";
 
 type GLTFResult = GLTF & {
 nodes: {
@@ -148,6 +148,8 @@ import { Text, Container, Root } from "@react-three/uikit";
 import { Card } from "@react-three/uikit-default";
 import { Billboard } from "./billboard";
 import { useColorStore } from "./store";
+import { useGLTF, PositionalAudio } from '@react-three/drei'
+import { PositionalAudio as PAudio } from "three";
 
 const pickableColors = [
   "#FFFFFF",

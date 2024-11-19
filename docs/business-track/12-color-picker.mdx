@@ -33,7 +33,9 @@ export default function App() {
     <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
       <XR store={store}>
         <Environment preset="warehouse" />
-        <Model position={[0, 1.1, -0.3]} scale={0.2} />
+        <group position={[0, 1.1, -0.3]} scale={0.2}>
+          <Model />
+        </group>
       </XR>
     </Canvas>
     </>

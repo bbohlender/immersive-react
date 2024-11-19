@@ -37,8 +37,10 @@ export default function App() {
     <Canvas onPointerMissed={() => useColorStore.getState().setSelected(undefined)} style={{ position: "absolute", inset: "0", touchAction: "none" }}>
       <XR store={store}>
         <Environment preset="warehouse" />
-        <Model position={[0, 1.1, -0.3]} scale={0.2} />
-        <ColorPicker />
+        <group position={[0, 1.1, -0.3]} scale={0.2}>
+          <Model />
+          <ColorPicker />
+        </group>
       </XR>
     </Canvas>
     </>
