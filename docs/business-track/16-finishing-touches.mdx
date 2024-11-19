@@ -334,11 +334,12 @@ const soundRef = useRef<PAudio>();
 />
 ```
 
-Next, we start playing the sound in the `onClick` handler in the `InterableMesh` through the `soundRef`.
+Next, we start playing the sound in the `onClick` handler in the `InterableMesh` through the `soundRef`. Before playing the sound we execute stop to make sure the sound is replayed from the start.
 
 ```tsx
 onClick={() => {
   useColorStore.getState().setSelected(name);
+  if (soundRef.current?.isPlaying) soundRef.current?.stop();
   soundRef.current?.play();
 }}
 ```
@@ -360,6 +361,7 @@ Finally, we similarly play the sound through `soundRef.current?.play()` in the `
 ```tsx
 onClick={() => {
   useColorStore.getState().setColor(selected, color);
+  if (soundRef.current?.isPlaying) soundRef.current?.stop();
   soundRef.current?.play();
 }}
 ```

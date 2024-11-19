@@ -141,6 +141,7 @@ function InteractableMesh({ geometry, material, name }: { name: string, geometry
                     }
                   }} ref={ref} onClick={() => {
                     useColorStore.getState().setSelected(name)
+                    if (soundRef.current?.isPlaying) soundRef.current?.stop();
                     soundRef.current?.play()
                 }} geometry={geometry} material={material} material-color={color} 
       material-emissive={selected || hovered ? color : 0x0}
@@ -223,6 +224,7 @@ export function ColorPicker() {
             borderColor={color === selectedColor ? color : colors.background}
             onClick={() => {
                 useColorStore.getState().setColor(selected, color)
+                if (soundRef.current?.isPlaying) soundRef.current?.stop();
                 soundRef.current?.play()
             }}
             borderWidth={2}
