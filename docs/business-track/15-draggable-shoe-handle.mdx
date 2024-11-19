@@ -25,6 +25,7 @@ import { useGLTF, Environment } from "@react-three/drei";
 import { createXRStore, XR } from "@react-three/xr";
 import { Model } from "./model";
 import { useColorStore } from "./store";
+import { ColorPicker } from "./color-picker";
 
 const store = createXRStore({ emulate: { inject: true } });
 
@@ -155,7 +156,7 @@ export function ColorPicker() {
             backgroundColor={color}
             flexDirection="column"
           ></Container>
-        )}
+        ))}
       </Container>
       <Container height={0.5 / 0.007} width={4} backgroundColor={selectedColor} />
     </Card>

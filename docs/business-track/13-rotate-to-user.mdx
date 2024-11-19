@@ -1,10 +1,10 @@
 ---
-title: Rotate the User Interface to the Camera
+title: User Interface Facing the User
 description:
 nav: 13
 ---
 
-The Color Picker currently only faces on direction and we cannot see it if we are behind it.
+The Color Picker currently only faces one direction and does not react to the users had location.
 Therefore we are building a billboard component, which makes sure its content is always rotated towards the user.
 
 <Sandpack
@@ -24,6 +24,7 @@ import { useState, useRef } from "react";
 import { useGLTF, Environment } from "@react-three/drei";
 import { createXRStore, XR } from "@react-three/xr";
 import { Model } from "./model";
+import { ColorPicker } from "./color-picker";
 
 const store = createXRStore({ emulate: { inject: true } });
 
@@ -146,7 +147,7 @@ export function ColorPicker() {
             backgroundColor="rgb(255,0,0)"
             flexDirection="column"
           ></Container>
-        )}
+        ))}
       </Container>
       <Container height={0.5 / 0.007} width={4} backgroundColor="white" />
     </Card>
