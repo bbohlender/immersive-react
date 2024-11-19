@@ -35,6 +35,8 @@ import { useGLTF, Environment } from "@react-three/drei";
 import { createXRStore, XR } from "@react-three/xr";
 import { Model } from "./model";
 import { ColorPicker } from "./color-picker";
+import { useColorStore } from "./store.ts";
+import { Draggable } from "./draggable";
 
 const store = createXRStore({ emulate: { inject: true } });
 
@@ -46,8 +48,10 @@ export default function App() {
     <Canvas onPointerMissed={() => useColorStore.getState().setSelected(undefined)} style={{ position: "absolute", inset: "0", touchAction: "none" }}>
       <XR store={store}>
         <Environment preset="warehouse" />
-        <Model position={[0, 1.1, -0.3]} scale={0.2} />
-        <ColorPicker />
+        <group position={[0, 1.1, -0.3]} scale={0.2}>
+          <Model />
+          <ColorPicker />
+        </group>
       </XR>
     </Canvas>
     </>
@@ -58,6 +62,7 @@ import { useGLTF, PositionalAudio } from '@react-three/drei'
 import { GLTF } from 'three-stdlib'
 import { PositionalAudio as PAudio } from "three";
 import { useColorStore } from "./store";
+import { useHover, isXRInputSourceState } from "@react-three/xr";
 
 type GLTFResult = GLTF & {
 nodes: {
@@ -108,7 +113,7 @@ useGLTF.preload('https://www.immersive-react.com/shoe.glb');
 
 function InteractableMesh({ geometry, material, name }: { name: string, geometry: BufferGeometry, material: Material }) {
     const color = useColorStore((state) => state[name as any]);
-    const selected = useStore((state) => state.selected === name);
+    const selected = useColorStore((state) => state.selected === name);
     const ref = useRef<Mesh>(null);
     const hovered = useHover(ref);
     const soundRef = useRef<PAudio>(null)
@@ -192,13 +197,24 @@ export function ColorPicker() {
           <Container
             hover={{ borderColor: color === selectedColor ? undefined : "rgb(255,255,255)", }}
             key={color}
-            onPointerOver={}
+            onPointerOver={(e) => {
+                    if (
+                      "pointerState" in e &&
+                      isXRInputSourceState(e.pointerState) &&
+                      e.pointerState.type === "controller"
+                    ) {
+                      e.pointerState.inputSource.gamepad?.hapticActuators[0]?.pulse(
+                        0.6,
+                        100
+                      );
+                    }
+                  }}
             cursor="pointer"
             borderColor={color === selectedColor ? color : colors.background}
             onClick={() => {
                 useColorStore.getState().setColor(selected, color)
                 soundRef.current?.play()
-            }
+            }}
             borderWidth={2}
             width={20}
             height={20}
