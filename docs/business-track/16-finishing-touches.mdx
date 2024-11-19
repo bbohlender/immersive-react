@@ -26,6 +26,7 @@ import { createXRStore, XR } from "@react-three/xr";
 import { Model } from "./model";
 import { ColorPicker } from "./color-picker";
 import { useColorStore } from "./store";
+import { Draggable } from "./draggable";
 
 const store = createXRStore({ emulate: { inject: true }, hand: {
     grabPointer: false,
@@ -36,15 +37,17 @@ const store = createXRStore({ emulate: { inject: true }, hand: {
 
 export default function App() {
   return (<>
-    <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterVR()}>
-        Enter VR
+    <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterAR()}>
+        Enter AR
     </button>
     <Canvas onPointerMissed={() => useColorStore.getState().setSelected(undefined)} style={{ position: "absolute", inset: "0", touchAction: "none" }}>
       <XR store={store}>
         <Environment preset="warehouse" />
         <group position={[0, 1.1, -0.3]} scale={0.2}>
-          <Model />
-          <ColorPicker />
+          <Draggable>
+            <Model />
+            <ColorPicker />
+          </Draggable>
         </group>
       </XR>
     </Canvas>
@@ -55,7 +58,6 @@ import React, { useRef, useState } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { GLTF } from 'three-stdlib'
 import { useColorStore } from "./store";
-import { Draggable } from "./draggable";
 
 type GLTFResult = GLTF & {
 nodes: {
@@ -84,8 +86,7 @@ export function Model(props: JSX.IntrinsicElements['group']) {
   const { nodes, materials } = useGLTF('https://www.immersive-react.com/shoe.glb') as GLTFResult
   return (
     <group {...props} dispose={null}>
-        <Draggable>
-           <InteractableMesh name="laces" geometry={nodes.shoe.geometry} material={materials.laces} />
+      <InteractableMesh name="laces" geometry={nodes.shoe.geometry} material={materials.laces} />
       <InteractableMesh name="mesh" geometry={nodes.shoe_1.geometry} material={materials.mesh} />
       <InteractableMesh name="caps" geometry={nodes.shoe_2.geometry} material={materials.caps} />
       <InteractableMesh name="inner" geometry={nodes.shoe_3.geometry} material={materials.inner} />
@@ -97,7 +98,6 @@ export function Model(props: JSX.IntrinsicElements['group']) {
       />
       <InteractableMesh name="patch" geometry={nodes.shoe_7.geometry} material={materials.patch} />
       <InteractableMesh name="band" geometry={nodes.shoe_6.geometry} material={materials.band} />
-      </Draggable>
     </group>
   )
 }

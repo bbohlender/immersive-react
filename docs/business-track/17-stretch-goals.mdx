@@ -36,6 +36,7 @@ import { createXRStore, XR } from "@react-three/xr";
 import { Model } from "./model";
 import { ColorPicker } from "./color-picker";
 import { useColorStore } from "./store.ts";
+import { Draggable } from "./draggable";
 
 const store = createXRStore({ emulate: { inject: true }, hand: {
     grabPointer: false,
@@ -46,15 +47,17 @@ const store = createXRStore({ emulate: { inject: true }, hand: {
 
 export default function App() {
   return (<>
-    <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterVR()}>
-        Enter VR
+    <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterAR()}>
+        Enter AR
     </button>
     <Canvas onPointerMissed={() => useColorStore.getState().setSelected(undefined)} style={{ position: "absolute", inset: "0", touchAction: "none" }}>
       <XR store={store}>
         <Environment preset="warehouse" />
         <group position={[0, 1.1, -0.3]} scale={0.2}>
-          <Model />
-          <ColorPicker />
+          <Draggable>
+            <Model />
+            <ColorPicker />
+          </Draggable>
         </group>
       </XR>
     </Canvas>
@@ -67,7 +70,6 @@ import { PositionalAudio as PAudio } from "three";
 import { GLTF } from 'three-stdlib'
 import { useColorStore } from "./store";
 import { useHover, isXRInputSourceState } from "@react-three/xr";
-import { Draggable } from "./draggable";
 
 type GLTFResult = GLTF & {
 nodes: {
@@ -96,20 +98,18 @@ export function Model(props: JSX.IntrinsicElements['group']) {
   const { nodes, materials } = useGLTF('https://www.immersive-react.com/shoe.glb') as GLTFResult
   return (
     <group {...props} dispose={null}>
-        <Draggable>
-            <InteractableMesh name="laces" geometry={nodes.shoe.geometry} material={materials.laces} />
-            <InteractableMesh name="mesh" geometry={nodes.shoe_1.geometry} material={materials.mesh} />
-            <InteractableMesh name="caps" geometry={nodes.shoe_2.geometry} material={materials.caps} />
-            <InteractableMesh name="inner" geometry={nodes.shoe_3.geometry} material={materials.inner} />
-            <InteractableMesh name="sole" geometry={nodes.shoe_4.geometry} material={materials.sole} />
-            <InteractableMesh
-              name="stripes"
-              geometry={nodes.shoe_5.geometry}
-              material={materials.stripes}
-            />
-            <InteractableMesh name="patch" geometry={nodes.shoe_7.geometry} material={materials.patch} />
-            <InteractableMesh name="band" geometry={nodes.shoe_6.geometry} material={materials.band} />
-      </Draggable>
+      <InteractableMesh name="laces" geometry={nodes.shoe.geometry} material={materials.laces} />
+      <InteractableMesh name="mesh" geometry={nodes.shoe_1.geometry} material={materials.mesh} />
+      <InteractableMesh name="caps" geometry={nodes.shoe_2.geometry} material={materials.caps} />
+      <InteractableMesh name="inner" geometry={nodes.shoe_3.geometry} material={materials.inner} />
+      <InteractableMesh name="sole" geometry={nodes.shoe_4.geometry} material={materials.sole} />
+      <InteractableMesh
+        name="stripes"
+        geometry={nodes.shoe_5.geometry}
+        material={materials.stripes}
+      />
+      <InteractableMesh name="patch" geometry={nodes.shoe_7.geometry} material={materials.patch} />
+      <InteractableMesh name="band" geometry={nodes.shoe_6.geometry} material={materials.band} />
     </group>
   )
 }
@@ -236,8 +236,8 @@ export function ColorPicker() {
           ></Container>
         ))}
       </Container>
-      <Container height={0.5 / 0.007} width={4} backgroundColor={selectedColor} />
     </Card>
+    <Container height={0.5 / 0.007} width={4} backgroundColor={selectedColor} />
     </Root>
     </Billboard>
   )

@@ -35,8 +35,8 @@ const store = createXRStore({ emulate: { inject: true }, hand: {
 
 export default function App() {
   return (<>
-    <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterVR()}>
-        Enter VR
+    <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterAR()}>
+        Enter AR
     </button>
     <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
       <XR store={store}>
@@ -142,10 +142,11 @@ export function ColorPicker() {
         >
           {pickableColors.map((color) => (
             <Container
-              hover={{ borderColor: "rgb(255,255,255)" }}
               key={color}
+              backgroundColor={color}
+              hover={{ borderColor: "rgb(255,255,255)" }}
               cursor="pointer"
-              borderColor={color}
+              borderColor="rgb(2,8,23)"
               borderWidth={2}
               width={20}
               height={20}

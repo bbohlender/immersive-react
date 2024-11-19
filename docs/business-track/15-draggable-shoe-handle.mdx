@@ -36,8 +36,8 @@ const store = createXRStore({ emulate: { inject: true }, hand: {
 
 export default function App() {
   return (<>
-    <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterVR()}>
-        Enter VR
+    <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterAR()}>
+        Enter AR
     </button>
     <Canvas onPointerMissed={() => useColorStore.getState().setSelected(undefined)} style={{ position: "absolute", inset: "0", touchAction: "none" }}>
       <XR store={store}>
@@ -261,7 +261,7 @@ function Draggable({ children }: { children?: ReactNode }) {
 }
 ```
 
-Next, we implement pointer event handling.
+Next, we implement the pointer event handlers on the `mesh` in the `Draggable` component.
 First, the `onPointerDown` event handler checks if a dragging is already in progress by checking `draggingPointerId.current`. It then stores the pointer id of the pointer that started the interaction and sets the pointer capture to ensure we keep receiving events even if the pointer moves.
 
 ```tsx
@@ -289,7 +289,7 @@ onPointerMove={(e) => {
 }}
 ```
 
-Lastly, we implement the `onPointerUp` handler to clean up the `draggingPointerId` when dragging ends:
+Next, we implement the `onPointerUp` handler to clean up the `draggingPointerId` when dragging ends:
 
 ```tsx
 onPointerUp={() => {
@@ -300,26 +300,13 @@ onPointerUp={() => {
 }}
 ```
 
-Finally, we add these handlers to our draggable handle mesh and set its scaling to `0.1` which results in a sphere with `10cm` radius.
+Finally, we use the `Draggable` component by wrapping the `Model` and `ColorPicker` components in `App.tsx` with it.
 
 ```tsx
-<mesh
-  position={positionOffset}
-  onPointerDown={...}
-  onPointerMove={...}
-  onPointerUp={...}
-  scale={0.1}
->
-  <sphereGeometry />
-  <meshPhongMaterial color="grey" />
-</mesh>
-```
-
-Finally, we use the Draggable component by wrapping the InteractablMeshes with it.
-
-```tsx
-<Draggable>
-  <InteractableMesh geometry={nodes.shoe.geometry} material={materials.laces} />
-  {...}
-</Draggable>
+<group position={[0, 1.1, -0.3]} scale={0.2}>
+  <Draggable>
+    <Model />
+    <ColorPicker />
+  </Draggable>
+</group>
 ```
