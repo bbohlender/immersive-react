@@ -13,7 +13,7 @@ jobs:
       base_path: ""
       libname: "Immersive React"
       icon: "🥽"
-      home_redirect: "/introduction-to-react-three-fiber/0-getting-started"
+      home_redirect: "/introduction-to-react-three-fiber/0-welcome"
       libname_dotsuffix_label: ""
 
   assets:
