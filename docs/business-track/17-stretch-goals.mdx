@@ -1,4 +1,20 @@
-final solution:
+---
+title: Stretch Goals
+description:
+nav: 17
+---
+
+In case you went through the previous steps super fast, here are some stretch goals you can expand your shoe configurator.
+
+- 🟢 **Different Model:** Change out the 3D Model, e.g. build a room configurator.
+- 🟢 **VR Mode:** Add a 3D Clothing Store 3D Model from ? and have the user enter a VR session instead.
+- 🌕 **URL State:** Save the shoe configuration to the url making allowing for sharable shoes.
+- 🔴 **Hybrid App:** Make app compatible with non-XR devices (e.g. center the shoe, disable dragging, display the Color Picker in Fullscreen).
+- 🔴 **Checkout Button:** Put a checkout button on the users left hand and allow pressing it by touching it.
+
+> 🟢 - easy  
+> 🌕 - intermediate  
+> 🔴 - hard
 
 <Sandpack
   template="react-ts"
@@ -26,7 +42,7 @@ export default function App() {
     <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterVR()}>
         Enter VR
     </button>
-    <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
+    <Canvas onPointerMissed={() => useStore.getState().setSelected(undefined)} style={{ position: "absolute", inset: "0", touchAction: "none" }}>
       <XR store={store}>
         <Environment preset="warehouse" />
         <Model position={[0, 1.1, -0.3]} scale={0.2} />
@@ -70,17 +86,18 @@ export function Model(props: JSX.IntrinsicElements['group']) {
   return (
     <group {...props} dispose={null}>
         <Draggable>
-            <InteractableMesh geometry={nodes.shoe.geometry} material={materials.laces} />
-            <InteractableMesh geometry={nodes.shoe_1.geometry} material={materials.mesh} />
-            <InteractableMesh geometry={nodes.shoe_2.geometry} material={materials.caps} />
-            <InteractableMesh geometry={nodes.shoe_3.geometry} material={materials.inner} />
-            <InteractableMesh geometry={nodes.shoe_4.geometry} material={materials.sole} />
+            <InteractableMesh name="laces" geometry={nodes.shoe.geometry} material={materials.laces} />
+            <InteractableMesh name="mesh" geometry={nodes.shoe_1.geometry} material={materials.mesh} />
+            <InteractableMesh name="caps" geometry={nodes.shoe_2.geometry} material={materials.caps} />
+            <InteractableMesh name="inner" geometry={nodes.shoe_3.geometry} material={materials.inner} />
+            <InteractableMesh name="sole" geometry={nodes.shoe_4.geometry} material={materials.sole} />
             <InteractableMesh
-                geometry={nodes.shoe_5.geometry}
-                material={materials.stripes}
+              name="stripes"
+              geometry={nodes.shoe_5.geometry}
+              material={materials.stripes}
             />
-            <InteractableMesh geometry={nodes.shoe_6.geometry} material={materials.band} />
-            <InteractableMesh geometry={nodes.shoe_7.geometry} material={materials.patch} />
+            <InteractableMesh name="patch" geometry={nodes.shoe_7.geometry} material={materials.patch} />
+            <InteractableMesh name="band" geometry={nodes.shoe_6.geometry} material={materials.band} />
       </Draggable>
     </group>
   )
@@ -154,14 +171,12 @@ export function ColorPicker() {
             loop={false}
         />
         <Root
-          borderColor={selectedColor}
-          borderWidth={4}
           pixelSize={0.007}
           anchorY="bottom"
           flexDirection="column"
           alignItems="center"
         >
-    <Card padding={16} display="flex" flexDirection="column" gap={16}>
+    <Card borderColor={selectedColor} borderWidth={4} padding={16} display="flex" flexDirection="column" gap={16}>
       <Text>{selected.toUpperCase() + name.slice(1)}</Text>
       <Container
         display="flex"
@@ -299,6 +314,3 @@ export function Draggable({ children }: { children?: ReactNode }) {
 }
 
 `}}/>
-
-
-- make app compatible with non-XR devices (e.g. center the shoe, disable dragging, display the Color Picker in Fullscreen)

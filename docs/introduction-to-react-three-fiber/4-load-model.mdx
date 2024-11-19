@@ -4,6 +4,7 @@ description:
 nav: 4
 ---
 
+Let's now make our scene more interesting by adding a 3D Model.
 
 <Sandpack
   template="react-ts"
@@ -17,7 +18,7 @@ nav: 4
   files={{
     '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
 import { useState, useRef } from "react";
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, Environment } from "@react-three/drei";
 
 export default function App() {
   return (
@@ -44,3 +45,25 @@ function MyComponent() {
 }
 
 `}}/>
+
+To add a 3D Model we create a new component called `MyModel` which we already included above.
+This component use the `useGLTF` hook to load a 3D Model in the GLTF format from the specified URL. We provide a gltf model under the url `"https://www.immersive-react.com/shoe.glb"`.
+The resulting object contains a sub-scene that includes all 3D objects inside the GLTF model.
+
+```tsx
+const { scene } = useGLTF("https://www.immersive-react.com/shoe.glb")
+```
+
+We can attach this sub-scene to our declarative 3D scene using above `primitive` tag.
+
+```tsx
+<primitive object={scene} />
+```
+
+Since our 3D Model uses a realistic material that reacts to the scene's lighting. We need to add some lighting to the screen using the Environment component imported from `@react-three/drei`.
+
+```tsx
+<Environment preset="warehouse" />
+```
+
+With these changes your scene should now display a shoe.

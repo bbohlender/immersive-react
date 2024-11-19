@@ -1,7 +1,7 @@
 ---
-title: Animating Bullets
+title: Loading GLTF Models
 description: 
-nav: 17
+nav: 21
 ---
 
 
@@ -17,7 +17,7 @@ nav: 17
     },
   }}
   files={{
-    '/App.tsx': `import { Canvas } from "@react-three/fiber";
+    '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { Environment } from "@react-three/drei";
 import { createXRStore, XR } from "@react-three/xr";
@@ -52,12 +52,32 @@ function Bullets() {
   );
 };
 
+const bulletSpeed = 10;
+const forwardVector = new Vector3();
+
 function Bullet({ bulletData }: { bulletData: BulletData }) {
+
+    const ref = useRef<Mesh>(null);
+
+    useFrame(() => {
+        const now = performance.now();
+        const bulletObject = ref.current!;
+        const directionVector = forwardVector
+        .set(0, 0, -1)
+        .applyQuaternion(bulletObject.quaternion);
+        bulletObject.position.addVectors(
+        bulletData.initPosition,
+        directionVector.multiplyScalar(
+            (bulletSpeed * (now - bulletData.timestamp)) / 1000
+        )
+        );
+    });
+
     return (
         <mesh
-            position={bulletData.initPosition}
+            ref={ref}
             quaternion={bulletData.initQuaternion}
-            >
+        >
             <sphereGeometry args={[0.02]} />
             <meshStandardMaterial color="grey" />
         </mesh>
@@ -92,12 +112,14 @@ return (
 
 `, 'store.ts': `import { create } from "zustand";
 import { generateUUID } from "three/src/math/MathUtils.js";
-import { Vector3, Quaternion } from "three";
 
 type BulletStore = {
   bullets: BulletData[];
   addBullet: (position: Vector3, quaternion: Quaternion) => void;
+  removeBullet: (bulletId: string) => void;
 };
+
+const bulletTimeToLive = 2
 
 export const useBulletStore = create<BulletStore>((set) => ({
   bullets: [],
@@ -107,8 +129,16 @@ export const useBulletStore = create<BulletStore>((set) => ({
         id: generateUUID(),
         initPosition: position,
         initQuaternion: quaternion,
+        timestamp: performance.now(),
       };
+      setTimeout(() => {
+        state.removeBullet(newBullet.id);
+      }, bulletTimeToLive * 1000);
       return { bullets: [...state.bullets, newBullet] };
     }),
+  removeBullet: (bulletId) =>
+    set((state) => ({
+      bullets: state.bullets.filter((bullet) => bullet.id !== bulletId),
+    })),
 }));
 `}}/>

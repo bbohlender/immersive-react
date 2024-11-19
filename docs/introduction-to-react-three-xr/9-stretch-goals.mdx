@@ -1,8 +1,22 @@
 ---
-title: Try on the IWER Emulator
+title: Stretch Goals
 description: 
-nav: 7
+nav: 9
 ---
+
+In case you went through the previous steps super fast, here are some stretch goals you can use to test and expand your newly gained React Three XR your knowledge.
+
+- 🟢 **AR Support**: add an `Enter AR` button
+- 🟢 **Red Controller Ray**: set the ray color of the default controller to red
+    (tip: add `{ controller: { ray: { color: "red" } } }` to the `createXRStore` config)
+- 🌕 **Position the Origin**: modify the position of the user with the `XROrigin` component
+    (tip: the origin can be viewed as the initial feet position of the user and is 0,0,0 by default)
+- 🔴 **Controller Locomotion**: move around in the scene using the controller thumsticks
+    (tip: look at https://pmndrs.github.io/xr/docs/getting-started/all-hooks#usexrcontrollerlocomotion)
+
+> 🟢 - easy  
+> 🌕 - intermediate  
+> 🔴 - hard  
 
 
 <Sandpack
@@ -21,7 +35,7 @@ import { useState, useRef } from "react";
 import { useGLTF, Environment } from "@react-three/drei";
 import { createXRStore, XR } from "@react-three/xr";
 
-const store = createXRStore({ emulate: { inject: true } });
+const store = createXRStore();
 
 export default function App() {
   return (<>

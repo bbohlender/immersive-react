@@ -1,11 +1,10 @@
 ---
 title: Create Color Picker User Interface
 description:
-nav: 9
+nav: 12
 ---
 
-solution of the previous step:
-
+Let's creating the user interface for the color picker. Since WebXR does not allow html elements inside the 3D scene, we need to use react-three/uikit to create our user interface. Luckily the html23.com allows us to easily turn html code into React Three Uikit code.
 
 <Sandpack
   template="react-ts"
@@ -96,7 +95,7 @@ function InteractableMesh({ geometry, material }: { geometry: BufferGeometry, ma
 `}}/>
 
 
-now do:
+To create our user interface with html23.com we first need to create the html. We are using tailwind and shadcn to define the user interface:
 
 ```jsx
 <Card class="p-4 flex flex-col gap-4">
@@ -107,11 +106,47 @@ now do:
 </Card>
 ```
 
-- convert with tailwind/shadcn code to react-three/uikit code with html23.com
-- paste into 'color-picker.tsx'
-- change from `export default function Index` to `export function ColorPicker`
-- add ColorPicker into the XR tagss
-- add Root arround the Card component
-- insert pickable colors
-- use pickableColors.map to create all colors for the ColorPicker
-- set `key={color}` and `borderColor={color}` on the Container inside `.map`
+Next, we use [html23.com](https://html23.com) to convert the above html to React Three Uikit. We then copy the resulting code through a button in the bottom right corner, paste it into `color-picker.tsx`, and change the function from `export default function Index` to `export function ColorPicker`. Since React Three Uikit tags need to always start with a Root tag, we wrap the `Card` tag with a `Root` component. Additionally we add another `Container` below the Card component which renders a small line below the Card visually attaching the Color Picker to the shoe.
+
+```tsx
+<Root
+  pixelSize={0.007}
+  anchorY="bottom"
+  flexDirection="column"
+  alignItems="center"
+>
+  {...Card Component Here}
+  <Container height={0.5 / 0.007} width={4} backgroundColor="white" />
+</Root>
+```
+
+The Color Picker currently only displays one color. To show several colors the user can pick from, we define an array of colors.
+
+```ts
+const pickableColors = [
+  "#FFFFFF",
+  "#4ECDC4",
+  "#1A535C",
+  "#FFB400",
+  "#FFE66D",
+  "#3D3A4B",
+  "#E63946",
+  "#A8DADC",
+  "#457B9D",
+  "#2A9D8F",
+  "#F4A261",
+  "#264653",
+];
+```
+
+We use the `pickableColors` to map them to a number of `Container`s which represent each color.
+
+```tsx
+{pickableColors.map((color) => (
+  <Container key={color} backgroundColor={color} ... />
+))}
+```
+
+Make sure to add the `key` property and remove the old `backgroundColor` property.
+
+The Color Picker so new finished and we can now can put it inside our app by adding it into the XR tag in our `App.tsx`. 

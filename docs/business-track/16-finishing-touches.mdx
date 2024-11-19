@@ -1,10 +1,10 @@
 ---
 title: Finishing Touches
 description:
-nav: 13
+nav: 16
 ---
 
-solution of the previous step:
+Our shoe configurator is already functional but we can improve the experience furhter by adding visual, haptic, and audio feedback.
 
 <Sandpack
   template="react-ts"
@@ -32,7 +32,7 @@ export default function App() {
     <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterVR()}>
         Enter VR
     </button>
-    <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
+    <Canvas onPointerMissed={() => useStore.getState().setSelected(undefined)} style={{ position: "absolute", inset: "0", touchAction: "none" }}>
       <XR store={store}>
         <Environment preset="warehouse" />
         <Model position={[0, 1.1, -0.3]} scale={0.2} />
@@ -75,17 +75,18 @@ export function Model(props: JSX.IntrinsicElements['group']) {
   return (
     <group {...props} dispose={null}>
         <Draggable>
-            <InteractableMesh geometry={nodes.shoe.geometry} material={materials.laces} />
-            <InteractableMesh geometry={nodes.shoe_1.geometry} material={materials.mesh} />
-            <InteractableMesh geometry={nodes.shoe_2.geometry} material={materials.caps} />
-            <InteractableMesh geometry={nodes.shoe_3.geometry} material={materials.inner} />
-            <InteractableMesh geometry={nodes.shoe_4.geometry} material={materials.sole} />
-            <InteractableMesh
-                geometry={nodes.shoe_5.geometry}
-                material={materials.stripes}
-            />
-            <InteractableMesh geometry={nodes.shoe_6.geometry} material={materials.band} />
-            <InteractableMesh geometry={nodes.shoe_7.geometry} material={materials.patch} />
+           <InteractableMesh name="laces" geometry={nodes.shoe.geometry} material={materials.laces} />
+      <InteractableMesh name="mesh" geometry={nodes.shoe_1.geometry} material={materials.mesh} />
+      <InteractableMesh name="caps" geometry={nodes.shoe_2.geometry} material={materials.caps} />
+      <InteractableMesh name="inner" geometry={nodes.shoe_3.geometry} material={materials.inner} />
+      <InteractableMesh name="sole" geometry={nodes.shoe_4.geometry} material={materials.sole} />
+      <InteractableMesh
+        name="stripes"
+        geometry={nodes.shoe_5.geometry}
+        material={materials.stripes}
+      />
+      <InteractableMesh name="patch" geometry={nodes.shoe_7.geometry} material={materials.patch} />
+      <InteractableMesh name="band" geometry={nodes.shoe_6.geometry} material={materials.band} />
       </Draggable>
     </group>
   )
@@ -127,14 +128,12 @@ export function ColorPicker() {
   }
   return (<Billboard>
         <Root
-          borderColor={selectedColor}
-          borderWidth={4}
           pixelSize={0.007}
           anchorY="bottom"
           flexDirection="column"
           alignItems="center"
         >
-    <Card padding={16} display="flex" flexDirection="column" gap={16}>
+    <Card borderColor={selectedColor} borderWidth={4} padding={16} display="flex" flexDirection="column" gap={16}>
       <Text>{selected.toUpperCase() + name.slice(1)}</Text>
       <Container
         display="flex"
@@ -269,33 +268,86 @@ export function Draggable({ children }: { children?: ReactNode }) {
 
 `}}/>
 
-now do:
+First, we highlight the shoe parts when users hover over them.
+We check if the current shoe part is selected from the `useColorStore` hook.
 
-- hover, and highlight when selected
-    - add `const selected = useStore((state) => state.selected === name);
-    const ref = useRef<Mesh>(null);
-    const hovered = useHover(ref);` into the Model component
-    - set ref on mesh in the Model component
-    - add onto mesh in the Model component
-      material-emissive={selected || hovered ? color : 0x0}
-      material-emissiveIntensity={selected ? 0.6 : 0.3}
-- vibrate when hovering over different shoe element or over color in color picker
-    - add `onPointerOver={(e) => {
-                    if (
-                      "pointerState" in e &&
-                      isXRInputSourceState(e.pointerState) &&
-                      e.pointerState.type === "controller"
-                    ) {
-                      e.pointerState.inputSource.gamepad?.hapticActuators[0]?.pulse(
-                        0.6,
-                        100
-                      );
-                    }
-                  }}` to the Container in pickableColors.map and to the mesh in InteractableMesh
-- sound when selecting shoe element and when changing the color
-    - in model.tsx import `PositionalAudio` from drei and `import { PositionalAudio as PAudio } from "three";`
-    - add a `const soundRef = useRef<PAudio>()` in the InstactableMesh Component
-    - add the PositionalAudio component to the InstactableMesh Component with ref={soundRef}, url="https://www.immersive-react.com/select.ogg", loop={false} properties
-    - call `soundRef.current?.play()` in the onClick handler of InstactableMesh
-    - add the same imports to `color-picker.tsx`, add the PositionalAudio with the same properties into the Billboard tag of the ColorPicker component, and add the  `const soundRef = useRef<PAudio>()` into the ColorPicker component
-    - call `soundRef.current?.play()` in the onClick handler of Container in pickableColors.map
+```tsx
+const selected = useColorStore((state) => state.selected === name);
+```
+
+Next, we check if the shoe part is hovered using the `useHover` hook, which takes a reference to the targetted mesh.
+
+```ts
+const ref = useRef<Mesh>(null);
+const hovered = useHover(ref);
+```
+
+Next, we use the `hovered` and `selected` state to modify the shoe part appearance. specifically, we are setting the emissive color which makes the material appear lighter and write the emissive intensity.
+
+```tsx
+<mesh 
+  ref={ref}
+  {...otherProps}
+  material-emissive={selected || hovered ? color : 0x0}
+  material-emissiveIntensity={selected ? 0.6 : 0.3}
+>
+```
+
+Next, we'll add haptic feedback for VR controllers when interacting with the shoe parts or the color picker. We trigger the `hapticActuators` of the hovering controller through the `onPointerOver` handler. In the handler we first check if the event is triggered by a XR controller before triggering its `hapticActuators`.
+
+```tsx
+onPointerOver={(e) => {
+  if (
+    "pointerState" in e &&
+    isXRInputSourceState(e.pointerState) &&
+    e.pointerState.type === "controller"
+  ) {
+    e.pointerState.inputSource.gamepad?.hapticActuators[0]?.pulse(
+      0.6,  // intensity
+      100   // duration in milliseconds
+    );
+  }
+}}
+```
+
+Lastly, we'll add audio feedback that plays when selecting shoe parts or changing colors. First, we add the `PositionalAudio` component in the `InteractableMesh` component, which allows to play sound or music from a 3D position in space.
+```tsx
+const soundRef = useRef<PAudio>();
+
+// Add inside the mesh component
+<PositionalAudio 
+  ref={soundRef}
+  url="https://www.immersive-react.com/select.ogg"
+  loop={false}
+/>
+```
+
+Next, we start playing the sound in the `onClick` handler in the `InterableMesh` through the `soundRef`.
+
+```tsx
+onClick={() => {
+  useColorStore.getState().setSelected(name);
+  soundRef.current?.play();
+}}
+```
+
+Lastly, we apply a similar modification to the ColorPicker component, adding a `PositionalAudio` component inside the Billboard.
+```tsx
+const soundRef = useRef<PAudio>();
+
+// Add inside the Billboard component
+<PositionalAudio 
+  ref={soundRef}
+  url="https://www.immersive-react.com/select.ogg"
+  loop={false}
+/>
+```
+
+Finally, we similarly play the sound through `soundRef.current?.play()` in the `onClick` handler for changing the color of the selected shoe part.
+
+```tsx
+onClick={() => {
+  useColorStore.getState().setColor(selected, color);
+  soundRef.current?.play();
+}}
+```

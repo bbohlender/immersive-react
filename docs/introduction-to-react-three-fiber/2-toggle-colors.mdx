@@ -4,6 +4,8 @@ description:
 nav: 2
 ---
 
+The solution to the previous step should look liks this:
+
 <Sandpack
   template="react-ts"
   customSetup={{
@@ -13,22 +15,40 @@ nav: 2
     },
   }}
   files={{
-    '/App.tsx': `import { Canvas } from "@react-three/fiber";
+    '/App.tsx': `import { Canvas, Vector3 } from "@react-three/fiber";
 import { useState } from "react";
 
 export default function App() {
   return (
     <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
-      <MyComponent />
+      <MyComponent position={[ 0, 0, 0 ]} />
     </Canvas>
   )
 }
 
-function MyComponent() {
-    return <mesh position={[ 0, 0, 0 ]}>
+function MyComponent({ position }: { position?: Vector3 }) {
+    return <mesh position={position}>
         <boxGeometry/>
         <meshBasicMaterial color={"red"} />
     </mesh>
 }
 
 `}}/>
+
+The next task is to modify `MyComponent` to toggle between blue and red when clicked. To achieve this we need to define a local state using `useState` called red.
+
+```tsx
+const [red, setRed] = useState(true)
+```
+
+We use this state to set the color of the cube's `meshBasicMaterial` to either `"red"` or `"blue"` depending on the value of `red`.
+
+```tsx
+<meshBasicMaterial color={red ? "red" : "blue"} />
+```
+
+Lastly, we add an `onClick` listener to the mesh, which toggles the `red` state when clicking the mesh.
+
+```tsx
+<mesh onClick={() => setRed(!red)} position={position}>
+```

@@ -1,13 +1,11 @@
 ---
-title: Gun Controller
+title: Try on the IWER Emulator
 description: 
-nav: 15
+nav: 10
 ---
 
-- remove MyComponent
-- remove MyModel
-- add Gun component
-- add Gun to the createXRStore config
+The IWER is built into React Three XR and automatically injected when developing locally on `localhost`.
+Since we use the codesandbox we have to manually enable injecting the emulator into our application.
 
 <Sandpack
   template="react-ts"
@@ -59,3 +57,12 @@ function MyComponent() {
 }
 
 `}}/>
+
+To enable automatic emulator injection we add `emulate` config with `inject: true` to the `createXRStore` paramter.
+
+```ts
+const store = createXRStore({ emulate: { inject: true } });
+```
+
+Now, when we press `Enter VR`, the emulator user interface is displayed on devices that do not support WebXR.
+When using the emulator, we can use the play button on the top to look arround the scene, and use the mouse click to toggle the state of the cube just like outside of XR.  

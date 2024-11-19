@@ -1,11 +1,10 @@
 ---
-title: Splitting up the Shoe
-description:
-nav: 8
+title: Add XR
+description: 
+nav: 7
 ---
 
-base line:
-
+Let's add AR and VR support to our 3D web app.
 
 <Sandpack
   template="react-ts"
@@ -23,21 +22,13 @@ import { useState, useRef } from "react";
 import { useGLTF, Environment } from "@react-three/drei";
 import { createXRStore, XR } from "@react-three/xr";
 
-const store = createXRStore({ emulate: { inject: true } });
-
 export default function App() {
-  return (<>
-    <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterVR()}>
-        Enter VR
-    </button>
+  return (
     <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
-      <XR store={store}>
-        <Environment preset="warehouse" />
-        <MyComponent />
-        <MyModel />
-      </XR>
+      <Environment preset="warehouse" />
+      <MyComponent />
+      <MyModel />
     </Canvas>
-    </>
   )
 }
 
@@ -58,16 +49,26 @@ function MyComponent() {
 
 `}}/>
 
-now do:
+First we'll create the XR store.
+```ts
+const store = createXRStore();
+```
 
-- remove MyComponent
-- download the <a download href="https://www.immersive-react.com/shoe.glb">shoe.glb</a> model
-- visit [gltf.pmnd.rs](gltf.pmnd.rs) and drag the shoe.glb file into the page
-- switch on `types` in the right side panel
-- copy and paste output of gltf.pmnd.rs into MyModel
-- repalce `shoe.glb` with `https://www.immersive-react.com/shoe.glb`
-- remove `castShadow`, `receiveShadow`
-- create InteractableMesh component
-- replace `mesh` with InteractableMesh
-- add import 'Model' from "./model"
-- add Model inside the XR tag
+Next, we'll connect the XR store to the Canvas using the `XR` component by wrapping the content of the canvas with the XR component that receives the XR store as a property.
+
+```tsx
+<Canvas>
+  <XR store={store}>
+    ...scene
+  </XR>
+</Canvas>
+```
+
+Lastly, we'll add a `Enter VR` button right before the Canvas. The button executes the `store.enterVR` function.
+
+```tsx
+<button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterVR()}>
+  Enter VR
+</button>
+
+In the next chapter, we'll learn how to confirm if our changes were correct by testing on a Meta Quest 3s headset.

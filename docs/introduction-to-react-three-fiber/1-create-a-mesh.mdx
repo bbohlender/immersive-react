@@ -4,6 +4,10 @@ description:
 nav: 1
 ---
 
+Let's begin creating a React Three Fiber app by replacing our `div` from the previous code with a `Canvas`, which sets up our 3D scene. We use `style={{ position: "absolute", inset: "0", touchAction: "none" }}` to fill the screen with the canvas.
+
+The following development environment already has the canvas setup, follow the instructions below to add the first mesh to the scene.
+
 <Sandpack
   template="react-ts"
   customSetup={{
@@ -13,7 +17,7 @@ nav: 1
     },
   }}
   files={{
-    '/App.tsx': `import { Canvas } from "@react-three/fiber";
+    '/App.tsx': `import { Canvas, Vector3 } from "@react-three/fiber";
 
 export default function App() {
   return (
@@ -22,3 +26,26 @@ export default function App() {
     </Canvas>
   )
 }`}}/>
+
+
+Your first task is to add 3D content into the `Canvas`. For that we create a new component called `MyComponent` that returns a **mesh** containing a **boxGeometry** and a **meshBasicMaterial** with color `"red"` to render a red box. We pass an optional position attribute to `MyComponent` of type Vector3 so we can define multiple instances of `MyComponent` at different positions in the 3D space.
+
+The code for `MyComponent` looks like this:
+```tsx
+function MyComponent({ position }: { position?: Vector3 }) {
+    return <mesh position={position}>
+        <boxGeometry/>
+        <meshBasicMaterial color="red" />
+    </mesh>
+}
+```
+
+Now we can add an instance of `MyComponent` into the Canvas at position `0,0,0`.
+
+```tsx
+<Canvas>
+  <MyComponent position={[0,0,0]} />
+</Canvas>
+```
+
+In the next part, we will add interactions and state to our first component.

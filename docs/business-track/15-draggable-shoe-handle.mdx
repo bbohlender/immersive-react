@@ -1,10 +1,10 @@
 ---
 title: Draggable Shoe Handle
 description:
-nav: 12
+nav: 15
 ---
 
-solution of the previous step:
+The shoe currently always floats in a specific position in the user's space. Let's allow the user to drag the shoe wherever they want.
 
 <Sandpack
   template="react-ts"
@@ -33,7 +33,7 @@ export default function App() {
     <button style={{ position: "absolute", zIndex: "1" }} onClick={() => store.enterVR()}>
         Enter VR
     </button>
-    <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
+    <Canvas onPointerMissed={() => useStore.getState().setSelected(undefined)} style={{ position: "absolute", inset: "0", touchAction: "none" }}>
       <XR store={store}>
         <Environment preset="warehouse" />
         <Model position={[0, 1.1, -0.3]} scale={0.2} />
@@ -74,17 +74,18 @@ export function Model(props: JSX.IntrinsicElements['group']) {
   const { nodes, materials } = useGLTF('https://www.immersive-react.com/shoe.glb') as GLTFResult
   return (
     <group {...props} dispose={null}>
-      <InteractableMesh geometry={nodes.shoe.geometry} material={materials.laces} />
-      <InteractableMesh geometry={nodes.shoe_1.geometry} material={materials.mesh} />
-      <InteractableMesh geometry={nodes.shoe_2.geometry} material={materials.caps} />
-      <InteractableMesh geometry={nodes.shoe_3.geometry} material={materials.inner} />
-      <InteractableMesh geometry={nodes.shoe_4.geometry} material={materials.sole} />
+      <InteractableMesh name="laces" geometry={nodes.shoe.geometry} material={materials.laces} />
+      <InteractableMesh name="mesh" geometry={nodes.shoe_1.geometry} material={materials.mesh} />
+      <InteractableMesh name="caps" geometry={nodes.shoe_2.geometry} material={materials.caps} />
+      <InteractableMesh name="inner" geometry={nodes.shoe_3.geometry} material={materials.inner} />
+      <InteractableMesh name="sole" geometry={nodes.shoe_4.geometry} material={materials.sole} />
       <InteractableMesh
+        name="stripes"
         geometry={nodes.shoe_5.geometry}
         material={materials.stripes}
       />
-      <InteractableMesh geometry={nodes.shoe_6.geometry} material={materials.band} />
-      <InteractableMesh geometry={nodes.shoe_7.geometry} material={materials.patch} />
+      <InteractableMesh name="patch" geometry={nodes.shoe_7.geometry} material={materials.patch} />
+      <InteractableMesh name="band" geometry={nodes.shoe_6.geometry} material={materials.band} />
     </group>
   )
 }
@@ -125,14 +126,12 @@ export function ColorPicker() {
   }
   return (<Billboard>
         <Root
-          borderColor={selectedColor}
-          borderWidth={4}
           pixelSize={0.007}
           anchorY="bottom"
           flexDirection="column"
           alignItems="center"
         >
-    <Card padding={16} display="flex" flexDirection="column" gap={16}>
+    <Card borderColor={selectedColor} borderWidth={4} padding={16} display="flex" flexDirection="column" gap={16}>
       <Text>{selected.toUpperCase() + name.slice(1)}</Text>
       <Container
         display="flex"
@@ -221,9 +220,98 @@ export const useColorStore = create(
 `}}/>
 
 
+To make the shoe component draggable we create a `Draggabe` component, which we can wrap around the shoe to make it draggable.
+First, we define `positionOffset` as the offset between the draggable handle to the wrapped object.
 
-now do:
+```ts
+const positionOffset = new Vector3(1.4, 0, 0);
+```
 
-- create the Draggable component in draggable.ts
-- add `<Draggable>` into the group of the Model component, wrapping all InteractableMeshes
+Next, we create the `matrixHelper`, which we for storing a matrix calculation later on
+
+```ts
+const matrixHelper = new Matrix4();
+```
+
+Next, we define the Draggable component with a group wrapping everything, a ref to modify the group's position, and a ref to store the `draggingPointerId`, which is the id of the pointer that is currently dragging the Draggable component.
+
+```tsx
+function Draggable({ children }: { children?: ReactNode }) {
+  const ref = useRef<Group>(null);
+  const draggingPointerId = useRef<number | undefined>(undefined);
+  return (
+    <group ref={ref}>
+      {children}
+      <mesh position={positionOffset}>
+        <sphereGeometry />
+        <meshPhongMaterial color="grey" />
+      </mesh>
+    </group>
+  );
+}
+```
+
+Next, we implement pointer event handling.
+First, the `onPointerDown` event handler checks if a dragging is already in progress by checking `draggingPointerId.current`. It then stores the pointer id of the pointer that started the interaction and sets the pointer capture to ensure we keep receiving events even if the pointer moves.
+
+```tsx
+onPointerDown={(e) => {
+  if (draggingPointerId.current != null) {
+    return;
+  }
+  draggingPointerId.current = e.pointerId;
+  (e.target as HTMLElement).setPointerCapture(e.pointerId);
+}}
+```
+
+Next, we implement the `onPointerMove` handler that does the actual dragging calculation. For this calculation we want to use the point of the interaction (`e.point`) and subtracting the offset to the draggable object. The problem is that `e.point` is the position relative to the global coordinate system while the position and `ref.current.position` is relative to the coordinate system of the draggable's parent. Therefore we calculate the `matrixHelper` as the inverse of the parent's world matrix allowing us to transform the interaction point (`e.point`) into the local space of the draggable's parent.
+
+```tsx
+onPointerMove={(e) => {
+  if (draggingPointerId.current == null || ref.current == null) {
+    return;
+  }
+  matrixHelper.copy(ref.current.parent!.matrixWorld).invert();
+  ref.current.position
+    .copy(e.point)
+    .applyMatrix4(matrixHelper)
+    .sub(positionOffset);
+}}
+```
+
+
+Lastly, we implement the `onPointerUp` handler to clean up the `draggingPointerId` when dragging ends:
+```tsx
+onPointerUp={() => {
+  if (draggingPointerId.current == null) {
+    return;
+  }
+  draggingPointerId.current = undefined;
+}}
+```
+
+Finally, we add these handlers to our draggable handle mesh  and set its scaling to `0.1` which results in a sphere with `10cm` radius.
+
+
+```tsx
+<mesh
+  position={positionOffset}
+  onPointerDown={...}
+  onPointerMove={...}
+  onPointerUp={...}
+  scale={0.1}
+>
+  <sphereGeometry />
+  <meshPhongMaterial color="grey" />
+</mesh>
+```
+
+Finally, we use the Draggable component by wrapping the InteractablMeshes with it.
+
+```tsx
+<Draggable>
+  <InteractableMesh geometry={nodes.shoe.geometry} material={materials.laces} />
+  {...}
+</Draggable>
+```
 

@@ -4,6 +4,7 @@ description:
 nav: 3
 ---
 
+With simple interactions and state management in place we can move onto more complex tasks. Let's make the cube spin continously.
 
 <Sandpack
   template="react-ts"
@@ -16,6 +17,7 @@ nav: 3
   files={{
     '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
 import { useState, useRef } from "react";
+import { Mesh } from "three";
 
 export default function App() {
   return (
@@ -34,3 +36,13 @@ function MyComponent() {
 }
 
 `}}/>
+
+To let the cube spin continously we need to get a reference to it. We create a ref with `useRef<Mesh>` and apply it to the mesh.
+
+Next, we use the `useFrame` hook and the reference to the cube, to rotate the cube 0.01 radians (approx. 0.57°) per frame. We use a questionmark after the `ref.current` in case we access the reference before it is set.
+
+```tsx
+useFrame(() => ref.current?.rotateY(0.01)) 
+```
+
+With these modifications your cube should now be spinning.

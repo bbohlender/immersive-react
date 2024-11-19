@@ -1,11 +1,11 @@
 ---
-title: Rotate User Interface to the User
+title: Rotate the User Interface to the Camera
 description:
-nav: 10
+nav: 13
 ---
 
-solution of the previous step:
-
+The Color Picker currently only faces on direction and we cannot see it if we are behind it.
+Therefore we are building a billboard component, which makes sure its content is always rotated towards the user.
 
 <Sandpack
   template="react-ts"
@@ -154,14 +154,42 @@ export function ColorPicker() {
   )
 }
 
-`}}/>
+`, 'billboard.tsx': ``}}/>
 
 
-now do:
+To build the Billboard component, we create the `Billboard` component which returns a `<group>` that is offset by 0.1 on the Y-Axis and takes optional children of type `ReactNode` as parameters.
 
-- create the `Billboard` component which returns a `<group>` and takes optional children of type `ReactNode` as parameters
-- set on the `group` rotation-order="YXZ", position={[0, 0.1, 0]}, and insert the children inside the `<group>` tag
-- add a `useRef<Group>(null)` and set the ref on the `<group>`
-- create a `const positionHelper = new Vector3();` which we will use every frame to calculate the position of the camera
-- add the `useFrame` which takes a callback in which we check if the ref.current exists, if the ref exists, we call `state.camera.getWorldPosition(positionHelper)` to compute the position of the camera and write it to our `positionHelper`, next we execute `ref.current.lookAt(positionHelper)` to make the group look at the camera
-- to prevent only make our component rotate towards to camera on the y axis, we set all axis to `0` after executing `lookAt`
+```tsx
+<group rotation-order="YXZ" position={[0, 0.1, 0]}>
+```
+
+Next, we create a reference to the group, which we will be using to rotate the group towards the user on every frame.
+
+```tsx
+const ref = useRef<Group>(null);
+
+<group ref={ref}>
+```
+
+Lastly, we setup the `useFrame` hook, which which takes a callback executed every frame.
+In that callback we check if `ref.current` exists and call `state.camera.getWorldPosition(positionHelper)` to compute the position of the camera and write it to our `positionHelper`.
+We need to define `positionHelper` as an object we reuse every frame.
+Next, we execute `ref.current.lookAt(positionHelper)` to make the group look at the camera
+We only want the group to rotate towards the user on the Y-Axis. Therefore, we set all axis to `0` after executing `lookAt`.
+
+The final `useFrame` hook looks like this:
+
+```tsx
+//outside of the Billboard component
+const positionHelper = new Vector3();
+
+//inside the Billboard component
+useFrame((state) => {
+    if (ref.current == null) {
+      return;
+    }
+    ref.current.lookAt(state.camera.getWorldPosition(positionHelper));
+    ref.current.rotation.x = 0;
+    ref.current.rotation.z = 0;
+});
+```
