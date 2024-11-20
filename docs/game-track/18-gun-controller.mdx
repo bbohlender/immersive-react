@@ -74,7 +74,14 @@ function MyComponent() {
 First, we remove the `MyComponent` and `MyModel` components and their usage inside of the `Canvas` and replace them with a infinity grid using `<Grid infiniteGrid />`, a grey background color using `<color args={[0x808080]} attach={"background"} />` and a  `<PerspectiveCamera makeDefault position={[0, 1.6, 2]} fov={75} />` to setup the default camera location when not in XR.
 
 ```tsx
-
+<Canvas>
+  <XR store={store}>
+    <Environment preset="warehouse" />
+    <Grid infiniteGrid />
+    <color args={[0x808080]} attach={"background"} />
+    <PerspectiveCamera makeDefault position={[0, 1.6, 2]} fov={75} />
+  </XR>
+</Canvas>
 ```
 
 
