@@ -20,21 +20,19 @@ In case you went through the previous steps super fast, here are some stretch go
 > 🌕 - intermediate  
 > 🔴 - hard  
 
-<Sandpack
+<Sandpack codeViewer
   template="react-ts"
   customSetup={{
     dependencies: {
       'three': '~0.168.0',
       '@react-three/fiber': 'latest',
       '@react-three/drei': 'latest',
-      '@react-three/xr': 'latest',
     },
   }}
   files={{
     '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
 import { useState, useRef } from "react";
 import { useGLTF, Environment } from "@react-three/drei";
-import { createXRStore, XR } from "@react-three/xr";
 
 export default function App() {
   return (

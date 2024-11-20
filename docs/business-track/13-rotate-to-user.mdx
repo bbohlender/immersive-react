@@ -7,7 +7,7 @@ nav: 13
 The Color Picker currently only faces one direction and does not react to the users had location.
 Therefore we are building a billboard component, which makes sure its content is always rotated towards the user.
 
-<Sandpack
+<Sandpack codeViewer
   template="react-ts"
   customSetup={{
     dependencies: {
@@ -162,12 +162,20 @@ export function ColorPicker() {
   );
 }
 
-`, 'billboard.tsx': ``}}/>
+`, 'billboard.tsx': `import { Vector3, Vector3Tuple, Group } from "three";
+import { ReactNode, useRef } from "react";
+import { useFrame } from "@react-three/fiber";`}}/>
 
 To build the Billboard component, we create the `Billboard` component which returns a `<group>` that is offset by 0.1 on the Y-Axis and takes optional children of type `ReactNode` as parameters.
 
 ```tsx
-<group rotation-order="YXZ" position={[0, 0.1, 0]}>
+export function Billboard({ children }: { children?: ReactNode; }) {
+  return (
+    <group rotation-order="YXZ" position={[0, 0.1, 0]}>
+      {children}
+    </group>
+  );
+}
 ```
 
 Next, we create a reference to the group, which we will be using to rotate the group towards the user on every frame.
@@ -199,4 +207,19 @@ useFrame((state) => {
   ref.current.rotation.x = 0;
   ref.current.rotation.z = 0;
 });
+```
+
+Lastly, we need to wrap our `ColorPicker` component with the `Billboard` component to always rotate the `ColorPicker` component towards the user.
+
+```tsx
+
+export function ColorPicker() {
+  return (
+    <Billboard>
+      <Root>
+        {...}
+      </Root>
+    </Billboard>
+  )
+}
 ```

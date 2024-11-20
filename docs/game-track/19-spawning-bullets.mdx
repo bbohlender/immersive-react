@@ -6,7 +6,7 @@ nav: 19
 
 After replacing our controller with a gun, our next step is to spawn bullets when the user presses the trigger of the controller. For that we will setup the bullet state management and setup a component for rendering the bullets.
 
-<Sandpack
+<Sandpack codeViewer
   template="react-ts"
   customSetup={{
     dependencies: {
@@ -20,11 +20,32 @@ After replacing our controller with a gun, our next step is to spawn bullets whe
   files={{
     '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import { Environment } from "@react-three/drei";
-import { createXRStore, XR } from "@react-three/xr";
-import {  } from "./store"
+import { Environment, Grid, PerspectiveCamera } from "@react-three/drei";
+import { createXRStore, XR, useXRInputSourceStateContext, useXRControllerButtonEvent } from "@react-three/xr";
+import { Vector3, Quaternion } from "three";
 
-const store = createXRStore({ controller: { right: Gun }, emulate: { inject: true } });
+const store = createXRStore({
+  controller: { right: Gun },
+  emulate: {
+    inject: true,
+    controller: {
+      left: {
+        position: [-0.15649, 1.43474, -0.38368],
+        quaternion: [
+          0.14766305685043335, -0.02471366710960865, -0.0037767395842820406,
+          0.9887216687202454,
+        ],
+      },
+      right: {
+        position: [0.15649, 1.43474, -0.38368],
+        quaternion: [
+          0.14766305685043335, 0.02471366710960865, -0.0037767395842820406,
+          0.9887216687202454,
+        ],
+      },
+    },
+  },
+});
 
 export default function App() {
   return (<>
@@ -34,6 +55,9 @@ export default function App() {
     <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
       <XR store={store}>
         <Environment preset="warehouse" />
+        <Grid infiniteGrid />
+        <color args={[0x808080]} attach={"background"} />
+        <PerspectiveCamera makeDefault position={[0, 1.6, 2]} fov={75} />
       </XR>
     </Canvas>
     </>
@@ -99,6 +123,9 @@ The next step, is to render the bullets in our store. To achieve rendering the b
 We add a `Bullet` componet to render a gey sphere at the provided initial position and initial rotation.
 
 ```tsx
+//at the beginning
+import { BulletData } from "./store";
+
 function Bullet({ bulletData }: {
   bulletData: BulletData;
 }) {
@@ -117,6 +144,10 @@ function Bullet({ bulletData }: {
 Next, we add a `Bullets` component that maps all bullets in our store to one `Bullet` component. The component retrieves the array of bullets from Zustand and maps each entry to a `Bullet` component using the `bulletData.id` as the `key` and providing the `bulletData` to the `Bullet` component.
 
 ```tsx
+//at the beginning
+import { useBulletStore } from "./store";
+
+
 export const Bullets = () => {
   const bullets = useBulletStore((state) => state.bullets);
   return (

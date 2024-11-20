@@ -6,7 +6,7 @@ nav: 12
 
 Let's creating the user interface for the color picker. Since WebXR does not allow html elements inside the 3D scene, we need to use react-three/uikit to create our user interface. Luckily the html23.com allows us to easily turn html code into React Three Uikit code.
 
-<Sandpack
+<Sandpack codeViewer
   template="react-ts"
   customSetup={{
     dependencies: {
@@ -99,7 +99,8 @@ function InteractableMesh({ geometry, material }: { geometry: BufferGeometry, ma
   return <mesh onClick={() => setRed(!red)} geometry={geometry} material={material} material-color={red ? "red" : "blue"} />
 }
 
-`}}/>
+`, 'color-picker.tsx': `import { Text, Container, Root } from "@react-three/uikit";
+import { Card } from "@react-three/uikit-default";`}}/>
 
 
 To create our user interface with html23.com we first need to create the html. We are using tailwind and shadcn to define the user interface:
@@ -122,7 +123,7 @@ Next, we use [html23.com](https://html23.com) to convert the above html to React
   flexDirection="column"
   alignItems="center"
 >
-  {...Card Component Here}
+  {/*...Card Component Here*/}
   <Container height={0.5 / 0.007} width={4} backgroundColor="white" />
 </Root>
 ```
@@ -156,4 +157,4 @@ We use the `pickableColors` to map them to a number of `Container`s which repres
 
 Make sure to add the `key` property and remove the old `backgroundColor` property.
 
-The Color Picker so new finished and we can now can put it inside our app by adding it into the XR tag in our `App.tsx`. 
+The Color Picker is now finalized and we can now insert it into our app by adding it into the `XR` tag in our `App.tsx`. 

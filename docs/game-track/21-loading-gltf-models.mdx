@@ -6,7 +6,7 @@ nav: 21
 
 Our next goal is to replace our simple models with more detailed 3D models including the models for the shooting targets.
 
-<Sandpack
+<Sandpack codeViewer
   template="react-ts"
   customSetup={{
     dependencies: {
@@ -20,13 +20,35 @@ Our next goal is to replace our simple models with more detailed 3D models inclu
   files={{
     '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import { Environment } from "@react-three/drei";
+import { Environment, Gltf, useGLTF, Grid, PerspectiveCamera } from "@react-three/drei";
 import { createXRStore, XR } from "@react-three/xr";
 import { useBulletStore, BulletData } from "./store"
 import { useXRControllerButtonEvent, useXRInputSourceStateContext } from "@react-three/xr";
 import { Vector3, Quaternion } from "three";
 
-const store = createXRStore({ controller: { right: Gun }, emulate: { inject: true } });
+
+const store = createXRStore({
+  controller: { right: Gun },
+  emulate: {
+    inject: true,
+    controller: {
+      left: {
+        position: [-0.15649, 1.43474, -0.38368],
+        quaternion: [
+          0.14766305685043335, -0.02471366710960865, -0.0037767395842820406,
+          0.9887216687202454,
+        ],
+      },
+      right: {
+        position: [0.15649, 1.43474, -0.38368],
+        quaternion: [
+          0.14766305685043335, 0.02471366710960865, -0.0037767395842820406,
+          0.9887216687202454,
+        ],
+      },
+    },
+  },
+});
 
 export default function App() {
   return (
@@ -35,6 +57,9 @@ export default function App() {
       <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
         <XR store={store}>
             <Environment preset="warehouse" />
+            <Grid infiniteGrid />
+            <color args={[0x808080]} attach={"background"} />
+            <PerspectiveCamera makeDefault position={[0, 1.6, 2]} fov={75} />
             <Bullets />
         </XR>
       </Canvas>
@@ -147,7 +172,7 @@ export const useBulletStore = create<BulletStore>((set) => ({
 `, 'target.tsx': ``}}/>
 
 
-First, we add an a space station into the `XR` tag in our `App.tsx` as our new environment using the `GLTF` component form `@react-three/drei`.
+First, we remove the `<Grid infiniteGrid />` from our scen and add an a space station model as our new environment instead. We use the `GLTF` component form `@react-three/drei` to load the 3D Model.
 
 ```tsx
 <Canvas>
@@ -206,6 +231,9 @@ export const targets = new Set<Object3D>();
 Next, we load and clone the target model so we can position each target individually while `useGLTF` returns the same model instance. Then, we add the target to the set of targets and set its position to a random point inside of `useEffect`.
 
 ```tsx
+//at the beginning
+import { useGLTF } from "@react-three/drei";
+
 export function Target({ targetIdx }: { targetIdx: number }) {
   const { scene } = useGLTF("assets/target.glb");
   const target = useMemo(() => scene.clone(), [])
@@ -225,6 +253,9 @@ export function Target({ targetIdx }: { targetIdx: number }) {
 Finally, we add three targets to the `XR` tag in `App.tsx`:
 
 ```tsx
+//at the beginning
+import { Target } from "./target";
+
 <Canvas >
   <XR store={store}>
       {...}

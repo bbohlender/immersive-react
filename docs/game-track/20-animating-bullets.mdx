@@ -6,7 +6,7 @@ nav: 20
 
 Now that we can spawn bullets we need to animate them to fly forward.
 
-<Sandpack
+<Sandpack codeViewer
   template="react-ts"
   customSetup={{
     dependencies: {
@@ -18,15 +18,37 @@ Now that we can spawn bullets we need to animate them to fly forward.
     },
   }}
   files={{
-    '/App.tsx': `import { Canvas } from "@react-three/fiber";
+    '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import { Environment } from "@react-three/drei";
+import { Environment, Grid, PerspectiveCamera } from "@react-three/drei";
 import { createXRStore, XR } from "@react-three/xr";
 import { useBulletStore, BulletData } from "./store"
 import { useXRControllerButtonEvent, useXRInputSourceStateContext } from "@react-three/xr";
 import { Vector3, Quaternion } from "three";
 
-const store = createXRStore({ controller: { right: Gun }, emulate: { inject: true } });
+
+const store = createXRStore({
+  controller: { right: Gun },
+  emulate: {
+    inject: true,
+    controller: {
+      left: {
+        position: [-0.15649, 1.43474, -0.38368],
+        quaternion: [
+          0.14766305685043335, -0.02471366710960865, -0.0037767395842820406,
+          0.9887216687202454,
+        ],
+      },
+      right: {
+        position: [0.15649, 1.43474, -0.38368],
+        quaternion: [
+          0.14766305685043335, 0.02471366710960865, -0.0037767395842820406,
+          0.9887216687202454,
+        ],
+      },
+    },
+  },
+});
 
 export default function App() {
   return (
@@ -35,6 +57,9 @@ export default function App() {
       <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
         <XR store={store}>
             <Environment preset="warehouse" />
+            <Grid infiniteGrid />
+            <color args={[0x808080]} attach={"background"} />
+            <PerspectiveCamera makeDefault position={[0, 1.6, 2]} fov={75} />
             <Bullets />
         </XR>
       </Canvas>
@@ -165,7 +190,7 @@ export const useBulletStore = create<BulletStore>((set) => ({
 }));
 ```
 
-With the automatic despawning of bullets in place, we can now move to animating each bullet using the `useFrame` hook from `@react-three/fiber`. By using `useFrame`, we can update the position of each bullet in real-time, making them move smoothly forward.
+With the automatic despawning of bullets in place, we can now move to animating each bullet using the `useFrame` hook from `@react-three/fiber` inside our `Bullet` component in `App.tsx`. By using `useFrame`, we can update the position of each bullet in real-time, making them move smoothly forward.
 
 To update the bullet we need to get a reference to it using `useRef`. Then we add `useFrame` to update each bullet's position based on its speed and direction. We calculate the direction by applying the bullet's initial quaternion to the `forwardVector`, aligning its movement with the orientation of the gun when it was fired. Then, we update bullet's position to the sum of its initial position and the direction vector multiplied by the `bulletSpeed` and the time passed since the bullet was spawned. This creates a consistent forward motion.
 

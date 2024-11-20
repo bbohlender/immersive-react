@@ -6,7 +6,7 @@ nav: 15
 
 The shoe currently always floats in a specific position in the user's space. Let's allow the user to drag the shoe wherever they want.
 
-<Sandpack
+<Sandpack codeViewer
   template="react-ts"
   customSetup={{
     dependencies: {
@@ -228,16 +228,18 @@ export const useColorStore = create(
     },
   }))
 );
-`}}/>
+`, 'draggable.tsx': `
+import { ReactNode, useRef } from "react";
+import { Group, Matrix4, Vector3 } from "three";`}}/>
 
-To make the shoe component draggable we create a `Draggabe` component, which we can wrap around the shoe to make it draggable.
+To make the shoe component draggable we create a `Draggabe` component inside `draggable.tsx`, which we can wrap around the shoe to make it draggable.
 First, we define `positionOffset` as the offset between the draggable handle to the wrapped object.
 
 ```ts
 const positionOffset = new Vector3(1.4, 0, 0);
 ```
 
-Next, we create the `matrixHelper`, which we for storing a matrix calculation later on
+Next, we create the `matrixHelper`, which we use for storing a matrix calculation later on
 
 ```ts
 const matrixHelper = new Matrix4();
@@ -247,7 +249,9 @@ Next, we define the Draggable component with a group wrapping everything, a ref 
 
 ```tsx
 function Draggable({ children }: { children?: ReactNode }) {
+  //ref to the group that should be dragged
   const ref = useRef<Group>(null);
+  //ref to the pointer id that is currently dragging
   const draggingPointerId = useRef<number | undefined>(undefined);
   return (
     <group ref={ref}>
@@ -262,7 +266,7 @@ function Draggable({ children }: { children?: ReactNode }) {
 ```
 
 Next, we implement the pointer event handlers on the `mesh` in the `Draggable` component.
-First, the `onPointerDown` event handler checks if a dragging is already in progress by checking `draggingPointerId.current`. It then stores the pointer id of the pointer that started the interaction and sets the pointer capture to ensure we keep receiving events even if the pointer moves.
+First, the `onPointerDown` event handler checks if a pointer is currently dragging the group by checking `draggingPointerId.current`. The handler then stores the pointer id of the pointer that started the interaction and sets the pointer capture to ensure we keep receiving events even if the pointer moves outside of the mesh.
 
 ```tsx
 onPointerDown={(e) => {
@@ -274,7 +278,7 @@ onPointerDown={(e) => {
 }}
 ```
 
-Next, we implement the `onPointerMove` handler that does the actual dragging calculation. For this calculation we want to use the point of the interaction (`e.point`) and subtracting the offset to the draggable object. The problem is that `e.point` is the position relative to the global coordinate system while the position and `ref.current.position` is relative to the coordinate system of the draggable's parent. Therefore we calculate the `matrixHelper` as the inverse of the parent's world matrix allowing us to transform the interaction point (`e.point`) into the local space of the draggable's parent.
+Next, we implement the `onPointerMove` handler that does the actual dragging calculation. For this calculation we want to use the point of the interaction (`e.point`) and subtracting the offset to the draggable object. However, this causes a problem since `e.point` is the position where the even occured relative to the global coordinate system while the position of the sphere accessed using `ref.current.position` is relative to the coordinate system of the draggable's parent. Therefore we transform the interaction point (`e.point`) into the local space of the draggable's parent using inverse of the parent's world matrix, which we store in the `matrixHelper`.
 
 ```tsx
 onPointerMove={(e) => {
@@ -289,7 +293,7 @@ onPointerMove={(e) => {
 }}
 ```
 
-Next, we implement the `onPointerUp` handler to clean up the `draggingPointerId` when dragging ends:
+Next, we implement the `onPointerUp` handler to clean up the `draggingPointerId` when the dragging ends:
 
 ```tsx
 onPointerUp={() => {
@@ -300,9 +304,13 @@ onPointerUp={() => {
 }}
 ```
 
-Finally, we use the `Draggable` component by wrapping the `Model` and `ColorPicker` components in `App.tsx` with it.
+Finally, we add the `Draggable` component to our app by wrapping the `Model` and `ColorPicker` components in `App.tsx` with it.
 
 ```tsx
+//at the start
+import { Draggable } from "./draggable"
+
+//in the 'export default function App'
 <group position={[0, 1.1, -0.3]} scale={0.2}>
   <Draggable>
     <Model />

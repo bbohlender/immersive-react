@@ -6,7 +6,7 @@ nav: 23
 
 In our last step, we introduce  audio, haptic feedback, and visual effects to make the game more fun and increase the immersion.
 
-<Sandpack
+<Sandpack codeViewer
   template="react-ts"
   customSetup={{
     dependencies: {
@@ -14,13 +14,14 @@ In our last step, we introduce  audio, haptic feedback, and visual effects to ma
       '@react-three/fiber': 'latest',
       '@react-three/drei': 'latest',
       '@react-three/xr': 'latest',
-      'zustand': 'latest'
+      'zustand': 'latest',
+      'gsap': 'latest'
     },
   }}
   files={{
     '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
 import { useState, useRef } from "react";
-import { useGLTF, Gltf, Environment } from "@react-three/drei";
+import { useGLTF, Gltf, Environment, PerspectiveCamera } from "@react-three/drei";
 import { createXRStore, XR } from "@react-three/xr";
 import { useBulletStore, BulletData } from "./store";
 import { Target, targets } from "./target";
@@ -30,10 +31,30 @@ import {
   useXRInputSourceStateContext,
 } from "@react-three/xr";
 import { Vector3, Quaternion } from "three";
+import gsap from "gsap";
+
 
 const store = createXRStore({
   controller: { right: Gun },
-  emulate: { inject: true },
+  emulate: {
+    inject: true,
+    controller: {
+      left: {
+        position: [-0.15649, 1.43474, -0.38368],
+        quaternion: [
+          0.14766305685043335, -0.02471366710960865, -0.0037767395842820406,
+          0.9887216687202454,
+        ],
+      },
+      right: {
+        position: [0.15649, 1.43474, -0.38368],
+        quaternion: [
+          0.14766305685043335, 0.02471366710960865, -0.0037767395842820406,
+          0.9887216687202454,
+        ],
+      },
+    },
+  },
 });
 
 export default function App() {
@@ -49,6 +70,8 @@ export default function App() {
         <XR store={store}>
           <Environment preset="warehouse" />
           <Bullets />
+          <color args={[0x808080]} attach={"background"} />
+          <PerspectiveCamera makeDefault position={[0, 1.6, 2]} fov={75} />
           <Gltf src="https://www.immersive-react.com/spacestation.glb" />
           <Target targetIdx={0} />
           <Target targetIdx={1} />
@@ -236,6 +259,10 @@ Using the `PositionalAudio` component from `@react-three/drei`, we can make soun
 First, we add add a sound for when the player fires the blaster in the `Gun` component. We add a `PositionalAudio` into the `Gun` component and assign the `"https://www.immersive-react.com/laser.ogg"` sound to it, store a reference to it in `soundRef`, and play the sound through the reference when the trigger is pressed.
 
 ```tsx
+//at the beginning
+import { PositionalAudio as PAudio } from "three";
+import { PositionalAudio } from "@react-three/drei";
+
 export function Gun() {
   // ... existing code
   const soundRef = useRef<PAudio>(null);
@@ -259,11 +286,14 @@ export function Gun() {
 };
 ```
 
-### Adding Audio in `score.tsx` for Scoring
-
 Next, we add a score sound to the `Score` component in `score.tsx`. We play the sound whenever the score changes using `useEffect`. Just like before, we add a `PositionalAudio` component and establish a reference. The effect re-runs and plays the sound every time the score is changed, except for the first time when the score is at 0.
 
 ```tsx
+//at the beginning
+import { useRef } from "react";
+import { PositionalAudio as PAudio } from "three";
+import { PositionalAudio } from "@react-three/drei";
+
 export function Score() {
   const score = useScoreStore((state) => state.score);
   const soundRef = useRef<PAudio>(null);

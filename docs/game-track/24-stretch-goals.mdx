@@ -18,7 +18,7 @@ In case you went through the previous steps super fast, here are some stretch go
 > 🔴 - hard  
 
 
-<Sandpack
+<Sandpack codeViewer
   template="react-ts"
   customSetup={{
     dependencies: {
@@ -33,7 +33,7 @@ In case you went through the previous steps super fast, here are some stretch go
   files={{
     '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import { useGLTF, Gltf, PositionalAudio, Environment } from "@react-three/drei";
+import { useGLTF, Gltf, PositionalAudio, Environment, PerspectiveCamera } from "@react-three/drei";
 import { createXRStore, XR } from "@react-three/xr";
 import { useBulletStore, BulletData } from "./store";
 import { Target, targets } from "./target";
@@ -54,7 +54,25 @@ function GsapTicker() {
 
 const store = createXRStore({
   controller: { right: Gun },
-  emulate: { inject: true },
+  emulate: {
+    inject: true,
+    controller: {
+      left: {
+        position: [-0.15649, 1.43474, -0.38368],
+        quaternion: [
+          0.14766305685043335, -0.02471366710960865, -0.0037767395842820406,
+          0.9887216687202454,
+        ],
+      },
+      right: {
+        position: [0.15649, 1.43474, -0.38368],
+        quaternion: [
+          0.14766305685043335, 0.02471366710960865, -0.0037767395842820406,
+          0.9887216687202454,
+        ],
+      },
+    },
+  },
 });
 
 export default function App() {
@@ -69,6 +87,8 @@ export default function App() {
       <Canvas style={{ position: "absolute", inset: "0", touchAction: "none" }}>
         <XR store={store}>
           <Environment preset="warehouse" />
+          <color args={[0x808080]} attach={"background"} />
+          <PerspectiveCamera makeDefault position={[0, 1.6, 2]} fov={75} />
           <Bullets />
           <Gltf src="https://www.immersive-react.com/spacestation.glb" />
           <Target targetIdx={0} />

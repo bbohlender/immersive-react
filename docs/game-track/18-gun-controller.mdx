@@ -4,9 +4,15 @@ description:
 nav: 18
 ---
 
+The Game Track is 100% based of off the [WebXR First Steps React Tutorial](https://github.com/meta-quest/webxr-first-steps-react/tree/main). Make sure to give it a ⭐️ start if you like the game track content.
+
+> [!NOTE]
+> If you prefer programming in your local development environment, clone `https://github.com/meta-quest/webxr-first-steps-react.git` and follow the instructions in `tutorial/chapter1.md`.
+> Once you are finished with the tutorial, take a look at the proposed [Stretch Goals](./24-stretch-goals.mdx).
+
 We begin our target shooting game by adding a custom gun model to the right controller.
 
-<Sandpack
+<Sandpack codeViewer
   template="react-ts"
   customSetup={{
     dependencies: {
@@ -19,10 +25,15 @@ We begin our target shooting game by adding a custom gun model to the right cont
   files={{
     '/App.tsx': `import { Canvas, useFrame } from "@react-three/fiber";
 import { useState, useRef } from "react";
-import { useGLTF, Environment } from "@react-three/drei";
+import { useGLTF, Environment, Grid, PerspectiveCamera } from "@react-three/drei";
 import { createXRStore, XR } from "@react-three/xr";
 
-const store = createXRStore({ emulate: { inject: true } });
+const store = createXRStore({
+  emulate: {
+    inject: true,
+  },
+});
+
 
 export default function App() {
   return (<>
@@ -57,7 +68,11 @@ function MyComponent() {
 
 `}}/>
 
-First, we remove the `MyComponent` and `MyModel` components and their usage inside of the `Canvas`.
+First, we remove the `MyComponent` and `MyModel` components and their usage inside of the `Canvas` and replace them with a infinity grid using `<Grid infiniteGrid />`, a grey background color using `<color args={[0x808080]} attach={"background"} />` and a  `<PerspectiveCamera makeDefault position={[0, 1.6, 2]} fov={75} />` to setup the default camera location when not in XR.
+
+```tsx
+
+```
 
 
 Next, we add a `Gun` component that into `App.tsx`. The `Gun` component renders a basic gun model using meshes, with cube geometries, and standard materials. We are using a **group**, which allows to group our meshes together.
@@ -79,10 +94,31 @@ export function Gun() {
 };
 ```
 
-To use our new `Gun` component as the right controller, we add it to the `createXRStore` configuration like this:
+To use our new `Gun` component as the right controller. Additionally, we want to configure the emulator so that the gun points into the center of the screen. Both modifications can be made through the options of the `createXRStore` by configuring the `controller.right` and the `emulate.controller` option.
 
 ```tsx
-const store = createXRStore({ controller: { right: Gun }, emulate: { inject: true } });
+const store = createXRStore({
+  controller: { right: Gun },
+  emulate: {
+    inject: true,
+    controller: {
+      left: {
+        position: [-0.15649, 1.43474, -0.38368],
+        quaternion: [
+          0.14766305685043335, -0.02471366710960865, -0.0037767395842820406,
+          0.9887216687202454,
+        ],
+      },
+      right: {
+        position: [0.15649, 1.43474, -0.38368],
+        quaternion: [
+          0.14766305685043335, 0.02471366710960865, -0.0037767395842820406,
+          0.9887216687202454,
+        ],
+      },
+    },
+  },
+});
 ```
 
-This overrides the default right controller, displaying the custom gun model instead, while the left controller still shows the default controller model.
+This changes the default position of the emulated controllers and overrides the default right controller, displaying the custom gun model instead, while the left controller still shows the default controller model.

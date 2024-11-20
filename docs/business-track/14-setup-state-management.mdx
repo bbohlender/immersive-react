@@ -6,7 +6,7 @@ nav: 14
 
 With the Color Picker User Interface in place, we need to make it and change the color of the shoe parts when clicked.
 
-<Sandpack
+<Sandpack codeViewer
   template="react-ts"
   customSetup={{
     dependencies: {
@@ -168,7 +168,6 @@ export function ColorPicker() {
 import { Vector3, Vector3Tuple, Group } from "three";
 import { ReactNode, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { colors } from "@react-three/uikit-default";
 
 const positionHelper = new Vector3();
 
@@ -192,10 +191,10 @@ return (
 </group>
 );
 }
+`, 'store.ts': `import { create } from "zustand";
+import { combine } from "zustand/middleware";`}}/>
 
-`}}/>
-
-To make the Color Picker functional, we need to setup a global state using `zustand` as the state manager.
+To make the Color Picker functional, we setup a global state using Zustand as the state manager.
 
 First, we need to define the initial state:
 
@@ -215,7 +214,7 @@ const initialColorState = {
 };
 ```
 
-Next, we define the `zustand` store using the `initialColorState` and a `setColor` and `setSelected` action to update the state.
+Next, we define the Zustand store using the `initialColorState` and a `setColor` and `setSelected` action to update the state.
 
 ```tsx
 export const useColorStore = create(
@@ -232,9 +231,13 @@ export const useColorStore = create(
 );
 ```
 
-Next, we use the `useColorStore` hook to get the `selected` shoe part and its color at the beginning of the `ColorPicker` component.
+Next, we use the `useColorStore` hook to get the `selected` shoe part and its color at the beginning of the `ColorPicker` component in the `color-picker.tsx` file.
 
 ```tsx
+//at the beginning
+import { useColorStore } from "./store"
+
+//in the ColorPicker component
 const selected = useColorStore((state) => state.selected);
 const selectedColor = useColorStore((state) =>
   state.selected == null ? undefined : state[state.selected as any]
@@ -249,20 +252,21 @@ if (selected == null) {
 }
 ```
 
-Next, we want to display the `selectedColor` in the ColorPicker by adding a border with the border color `selectedColor` to the `Card` component.
-Additionally, we set the `backgroundColor` to `selectedColor` on the Container at the `pickableColors.map`.
+Next, we want to display the `selectedColor` in the `ColorPicker` component by adding a border with the border color `selectedColor` to the `Card` component.
+Additionally, we set the `backgroundColor` to `selectedColor` on the Container after `pickableColors.map`.
+
 Using the `selectedColor`, we can change the title of the ColorPicker `Color Picker` to `selected.toUpperCase() + name.slice(1)`.
 
 ```tsx
 <Card borderColor={selectedColor} borderWidth={4} >
   <Text>{selected.toUpperCase() + name.slice(1)}</Text>
-  {...}
-  <Container backgroundColor={selectedColor} />
+  <Container {...}>{...}</Container>
 </Card>
+<Container backgroundColor={selectedColor} {...} />
 ```
 
 For the Containers inside `pickableColors.map` we want them to highlight the currently selected color and have them change the color of the selected shoe part when beeing clicked.
-Therefore, we set their `borderColor` to `color === selectedColor ? color : colors.background`, their hover borderColor to `color === selectedColor ? undefined : "white"`, and their the `onClick` listener to `() => useColorStore.getState().setColor(selected, color)`.
+Therefore, we set their `borderColor` to `color === selectedColor ? color : colors.background`, their hover borderColor to `color === selectedColor ? undefined : "white"`, and their `onClick` listener to `() => useColorStore.getState().setColor(selected, color)`.
 
 ```tsx
 <Container
@@ -272,10 +276,13 @@ Therefore, we set their `borderColor` to `color === selectedColor ? color : colo
 />
 ```
 
-Next, we enable the user to click on a part of the shoe to select it by executing `useColorStore.getState().setSelected(name)` inside the `onClick` listener in the `InstactableMesh` component.
-To change the correct part of the shoe in InterableMesh, we need to pass the `name` of the shoe part into `InteractableMesh`.
+Next, we enable the user to click on a part of the shoe to select it by executing `useColorStore.getState().setSelected(name)` inside the `onClick` listener in the `InstactableMesh` component found in `model.tsx`.
+To change the correct part of the shoe in the `InterableMesh` component, we need to pass the `name` of the shoe part into `InteractableMesh`.
 
 ```tsx
+//at the beginning
+import { useColorStore } from "./store"
+
 function InteractableMesh({
   geometry,
   material,
@@ -310,7 +317,7 @@ As a result, we need to pass the `name` to the `InterableMesh` when creating the
 <InteractableMesh name="band" {...} />
 ```
 
-Lastly, we allow users to unselect everything and hide the Color Picker as they click outside of the shoe and Color Picker. We achieve this by setting the `selected` part to `undefined` in the `onPointerMissed` handler of the Canvas.
+Lastly, we allow users to unselect everything and hide the Color Picker as they click outside of the shoe or the Color Picker. We achieve this by setting `selected` to `undefined` using `useStore.getState().setSelected(undefined)` when the `onPointerMissed` handler of the Canvas is called.
 
 ```tsx
 <Canvas onPointerMissed={() => useStore.getState().setSelected(undefined)} >

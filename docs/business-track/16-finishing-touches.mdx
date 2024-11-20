@@ -6,7 +6,7 @@ nav: 16
 
 Our shoe configurator is already functional but we can improve the experience furhter by adding visual, haptic, and audio feedback.
 
-<Sandpack
+<Sandpack codeViewer
   template="react-ts"
   customSetup={{
     dependencies: {
@@ -55,9 +55,11 @@ export default function App() {
   )
 }`, 'model.tsx': `import * as THREE from 'three'
 import React, { useRef, useState } from 'react'
-import { useGLTF } from '@react-three/drei'
+import { useGLTF, PositionalAudio } from '@react-three/drei'
+import { PositionalAudio as PAudio } from "three";
 import { GLTF } from 'three-stdlib'
 import { useColorStore } from "./store";
+import { useHover, isXRInputSourceState } from "@react-three/xr";
 
 type GLTFResult = GLTF & {
 nodes: {
@@ -114,7 +116,10 @@ import { Text, Container, Root } from "@react-three/uikit";
 import { Card } from "@react-three/uikit-default";
 import { Billboard } from "./billboard";
 import { useColorStore } from "./store";
-import { colors } from "@react-three/uikit-default";
+import { useGLTF, PositionalAudio } from '@react-three/drei'
+import { PositionalAudio as PAudio } from "three";
+import { useRef } from "react";
+import { isXRInputSourceState } from "@react-three/xr";
 
 const pickableColors = [
   "#FFFFFF",
@@ -280,16 +285,18 @@ export function Draggable({ children }: { children?: ReactNode }) {
 
 `}}/>
 
-First, we highlight the shoe parts when users hover over them.
-We check if the current shoe part is selected from the `useColorStore` hook.
+First, we highlight the shoe parts when the user hovers over them.
+To achieve that we check if the shoe part that each `InteractableMesh` component represents is selected usig the `useColorStore` hook.
 
 ```tsx
+//in the InteractableMesh component in "model.tsx"
 const selected = useColorStore((state) => state.selected === name);
 ```
 
 Next, we check if the shoe part is hovered using the `useHover` hook, which takes a reference to the targetted mesh.
 
 ```ts
+//in the InteractableMesh component in "model.tsx"
 const ref = useRef<Mesh>(null);
 const hovered = useHover(ref);
 ```
@@ -297,6 +304,7 @@ const hovered = useHover(ref);
 Next, we use the `hovered` and `selected` state to modify the shoe part appearance. specifically, we are setting the emissive color which makes the material appear lighter and write the emissive intensity.
 
 ```tsx
+//in the InteractableMesh component in "model.tsx"
 <mesh 
   ref={ref}
   {...otherProps}
@@ -305,7 +313,7 @@ Next, we use the `hovered` and `selected` state to modify the shoe part appearan
 >
 ```
 
-Next, we'll add haptic feedback for VR controllers when interacting with the shoe parts or the color picker. We trigger the `hapticActuators` of the hovering controller through the `onPointerOver` handler. In the handler we first check if the event is triggered by a XR controller before triggering its `hapticActuators`.
+Next, we add haptic feedback for VR controllers when interacting with the shoe parts or the Color Picker. We trigger the `hapticActuators` of the hovering controller through the `onPointerOver` handler. In the handler we first check if the event is triggered by a XR controller using `isXRInputSourceState` and `e.pointerState.type === "controller"` before triggering its `hapticActuators`. To enable the vibration on both each part of the shoe and the Color Picker component, we need to add the following handler to the `mesh` of the `InterableMesh` component and to the `Container` inside `pickableColors.map`.
 
 ```tsx
 onPointerOver={(e) => {
@@ -322,7 +330,10 @@ onPointerOver={(e) => {
 }}
 ```
 
-Lastly, we'll add audio feedback that plays when selecting shoe parts or changing colors. First, we add the `PositionalAudio` component in the `InteractableMesh` component, which allows to play sound or music from a 3D position in space.
+Lastly, we'll add audio feedback that plays when selecting shoe parts or changing colors.
+
+To achieve that we add the `PositionalAudio` component in the `InteractableMesh` component in `model.tsx`, which allows to play sound or music from a 3D position in space.
+
 ```tsx
 const soundRef = useRef<PAudio>();
 
@@ -344,7 +355,8 @@ onClick={() => {
 }}
 ```
 
-Lastly, we apply a similar modification to the ColorPicker component, adding a `PositionalAudio` component inside the Billboard.
+Lastly, we apply the same modification to the ColorPicker component, adding a `PositionalAudio` component inside the Billboard.
+
 ```tsx
 const soundRef = useRef<PAudio>();
 
@@ -356,7 +368,7 @@ const soundRef = useRef<PAudio>();
 />
 ```
 
-Finally, we similarly play the sound through `soundRef.current?.play()` in the `onClick` handler for changing the color of the selected shoe part.
+Finally, we similarly play the sound through `soundRef.current?.play()` in the `onClick` handler for the `Container` inside `pickableColors.map`.
 
 ```tsx
 onClick={() => {
