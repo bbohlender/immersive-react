@@ -22,7 +22,7 @@ After replacing our controller with a gun, our next step is to spawn bullets whe
 import { useRef } from "react";
 import { Environment, Grid, PerspectiveCamera } from "@react-three/drei";
 import { createXRStore, XR, useXRInputSourceStateContext, useXRControllerButtonEvent } from "@react-three/xr";
-import { Vector3, Quaternion } from "three";
+import { Vector3, Quaternion, Mesh } from "three";
 
 const store = createXRStore({
   controller: { right: Gun },
@@ -147,8 +147,7 @@ Next, we add a `Bullets` component that maps all bullets in our store to one `Bu
 //at the beginning
 import { useBulletStore } from "./store";
 
-
-export const Bullets = () => {
+export function Bullets() {
   const bullets = useBulletStore((state) => state.bullets);
   return (
     <>
@@ -157,7 +156,7 @@ export const Bullets = () => {
       ))}
     </>
   );
-};
+}
 ```
 
 Next, we add `Bullets` component into the `XR` tag inside `App.tsx`, which completes the rendering setup for bullets in the scene.
