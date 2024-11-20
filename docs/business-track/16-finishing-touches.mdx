@@ -336,6 +336,10 @@ Lastly, we'll add audio feedback that plays when selecting shoe parts or changin
 To achieve that we add the `PositionalAudio` component in the `InteractableMesh` component in `model.tsx`, which allows to play sound or music from a 3D position in space.
 
 ```tsx
+//at the beginnging
+import { PositionalAudio } from "@react-three/drei";
+import { PositionalAudio as PAudio } from "three";
+
 const soundRef = useRef<PAudio>();
 
 // Add inside the mesh component
